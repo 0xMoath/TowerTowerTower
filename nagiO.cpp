@@ -26,9 +26,16 @@ void showNagi(int x, int y)
     	r.center = 0;
 	r.left = x;
 	r.bot = y;
-	glClear(GL_COLOR_BUFFER_BIT);
 	ggprint8b(&r, 16, 0x00ff0000, "Nagi Obeid");
 	ggprint8b(&r, 16, 0x00ff0000, "Credit Screen");
 	ggprint8b(&r, 16, 0x00ff0000, "This is My stuff");
+}
+void printCredits(int xres, int yres)
+{
+	glClearColor(0.0,0.0,0.0,1.0);
+	int xVal = xres / 2;
+	int yVal = yres / 2;
+
+	showNagi(xVal, yVal);
 }
 
