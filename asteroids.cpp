@@ -792,6 +792,13 @@ void render()
 	ggprint8b(&r, 16, 0x00ff0000, "3350 - Asteroids");
 	ggprint8b(&r, 16, 0x00ffff00, "n bullets: %i", g.nbullets);
 	ggprint8b(&r, 16, 0x00ffff00, "n asteroids: %i", g.nasteroids);
+
+	//ADDED MAIN TEXT DISPLAY FOR DISPLAYING WHICH BUTTON TO PRESS
+	r.bot = gl.yres - 850;
+	r.left = gl.xres / 2;
+	r.center = 0;
+	ggprint8b(&r, 16, 0x00ff0000, "Press F for Toggle Credits");
+	
 	//-------------------------------------------------------------------------
 	//Draw the ship
 	glColor3fv(g.ship.color);
@@ -885,6 +892,7 @@ void render()
 	}
 	
 	if (gl.creditsBtn) {
+		glClearColor(0.0, 0.0, 0.0, 1.0);
 		printCredits(gl.xres,gl.yres);
 	}
 }
