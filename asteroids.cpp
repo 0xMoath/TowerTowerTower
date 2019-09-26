@@ -61,6 +61,7 @@ public:
 	bool creditsBtn = 0;
 	int xres, yres;
 	char keys[65536];
+	bool creditTest = false;
 	Global() {
 		xres = 1250;
 		yres = 900;
@@ -505,9 +506,9 @@ int check_keys(XEvent *e)
 	if (shift){}
 	switch (key) {
 		case XK_Escape:
-			return 1;
-		case XK_f:
-			gl.creditsBtn = !gl.creditsBtn;		
+			return 1;	
+		case XK_c:
+			gl.creditTest = !gl.creditTest;
 			break;
 		case XK_s:
 			break;
@@ -883,10 +884,14 @@ void render()
 		glVertex2f(b->pos[0]+1.0f, b->pos[1]+1.0f);
 		glEnd();
 	}
-	
-	if (gl.creditsBtn) {
-		printCredits(gl.xres,gl.yres);
-	}
+
+
+	void MoathRend(int, int, Rect);
+  void printCredits(gl.xres,gl.yres);
+	if(gl.creditTest) {
+	  printCredits(gl.xres,gl.yres);
+    MoathRend(gl.xres, gl.yres, r);
+  }
 }
 
 
