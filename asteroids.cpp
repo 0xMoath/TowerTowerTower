@@ -887,10 +887,10 @@ void render()
 
 
 	void MoathRend(int, int, Rect);
-  void printCredits(gl.xres,gl.yres);
-	if(gl.creditTest) {
-	  printCredits(gl.xres,gl.yres);
-    MoathRend(gl.xres, gl.yres, r);
+  	void printCredits(int ,int);
+	if (gl.creditTest) {
+	  	printCredits(gl.xres,gl.yres);
+    		MoathRend(gl.xres, gl.yres, r);
   }
 }
 
