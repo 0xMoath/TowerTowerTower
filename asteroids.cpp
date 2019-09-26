@@ -58,6 +58,7 @@ extern void timeCopy(struct timespec *dest, struct timespec *source);
 
 class Global {
 public:
+	bool creditsBtn = 0;
 	int xres, yres;
 	char keys[65536];
 	Global() {
@@ -306,7 +307,12 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+bool renderKeyPress();
 
+//////////////////////CREDITS
+extern void showNagi(int x, int y);
+extern void printCredits(int xres, int yres);
+//////////////////////
 //==========================================================================
 // M A I N
 //==========================================================================
@@ -501,6 +507,7 @@ int check_keys(XEvent *e)
 		case XK_Escape:
 			return 1;
 		case XK_f:
+			gl.creditsBtn = !gl.creditsBtn;		
 			break;
 		case XK_s:
 			break;
@@ -875,6 +882,10 @@ void render()
 		glVertex2f(b->pos[0]+1.0f, b->pos[1]-1.0f);
 		glVertex2f(b->pos[0]+1.0f, b->pos[1]+1.0f);
 		glEnd();
+	}
+	
+	if (gl.creditsBtn) {
+		printCredits(gl.xres,gl.yres);
 	}
 }
 
