@@ -58,6 +58,7 @@ extern void timeCopy(struct timespec *dest, struct timespec *source);
 
 class Global {
 public:
+	bool creditsBtn = 0;
 	int xres, yres;
 	char keys[65536];
 	bool creditTest = false;
@@ -307,7 +308,12 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+bool renderKeyPress();
 
+//////////////////////CREDITS
+extern void showNagi(int x, int y);
+extern void printCredits(int xres, int yres);
+//////////////////////
 //==========================================================================
 // M A I N
 //==========================================================================
@@ -500,7 +506,7 @@ int check_keys(XEvent *e)
 	if (shift){}
 	switch (key) {
 		case XK_Escape:
-			return 1;
+			return 1;	
 		case XK_c:
 			gl.creditTest = !gl.creditTest;
 			break;
@@ -879,9 +885,13 @@ void render()
 		glEnd();
 	}
 
+
 	void MoathRend(int, int, Rect);
-	if(gl.creditTest)
-	MoathRend(gl.xres, gl.yres, r);
+  void printCredits(gl.xres,gl.yres);
+	if(gl.creditTest) {
+	  printCredits(gl.xres,gl.yres);
+    MoathRend(gl.xres, gl.yres, r);
+  }
 }
 
 
