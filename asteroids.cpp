@@ -55,13 +55,11 @@ extern double timeSpan;
 extern double timeDiff(struct timespec *start, struct timespec *end);
 extern void timeCopy(struct timespec *dest, struct timespec *source);
 //-----------------------------------------------------------------------------
-
 class Global {
 public:
-	bool creditsBtn = 0;
+    	bool creditTest = 0;
 	int xres, yres;
 	char keys[65536];
-	bool creditTest = false;
 	Global() {
 		xres = 1250;
 		yres = 900;
@@ -308,12 +306,15 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+//prototypes for printing credits
+//stuff called in the key event function
+extern void doPrintCredits(int xres, int yres);
+extern void danielCredits(int x, int y);
+extern void showNagi(int x, int y);
+extern void MoathRend(int x, int y, Rect r);
+
 bool renderKeyPress();
 
-//////////////////////CREDITS
-extern void showNagi(int x, int y);
-extern void printCredits(int xres, int yres);
-//////////////////////
 //==========================================================================
 // M A I N
 //==========================================================================
@@ -885,13 +886,11 @@ void render()
 		glEnd();
 	}
 
-
-	void MoathRend(int, int, Rect);
-  	void printCredits(int ,int);
+	//draw credits
 	if (gl.creditTest) {
-	  	printCredits(gl.xres,gl.yres);
-    		MoathRend(gl.xres, gl.yres, r);
-  }
+			doPrintCredits(gl.xres,gl.yres);
+		}
+  
 }
 
 
