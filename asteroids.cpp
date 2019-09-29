@@ -57,9 +57,14 @@ extern void timeCopy(struct timespec *dest, struct timespec *source);
 //-----------------------------------------------------------------------------
 class Global {
 public:
+<<<<<<< HEAD
     	bool creditTest = 0;
+=======
+	bool creditsBtn = 0;
+>>>>>>> master
 	int xres, yres;
 	char keys[65536];
+	bool creditTest = false;
 	Global() {
 		xres = 1250;
 		yres = 900;
@@ -306,10 +311,19 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+<<<<<<< HEAD
 //===================prototypes for printingcredits
 //stuff stuff called in the key event function
 extern void printCredits(int xres, int yres);
 extern void danielCredits(int x, int y);
+=======
+bool renderKeyPress();
+
+//////////////////////CREDITS
+extern void showNagi(int x, int y);
+extern void printCredits(int xres, int yres);
+//////////////////////
+>>>>>>> master
 //==========================================================================
 // M A I N
 //==========================================================================
@@ -502,8 +516,9 @@ int check_keys(XEvent *e)
 	if (shift){}
 	switch (key) {
 		case XK_Escape:
-			return 1;
-		case XK_f:
+			return 1;	
+		case XK_c:
+			gl.creditTest = !gl.creditTest;
 			break;
 		case XK_s:
 			break;
@@ -882,9 +897,14 @@ void render()
 		glVertex2f(b->pos[0]+1.0f, b->pos[1]+1.0f);
 		glEnd();
 	}
+
+
+	void MoathRend(int, int, Rect);
+  	void printCredits(int ,int);
 	if (gl.creditTest) {
-		printCredits(gl.xres, gl.yres);
-	}
+	  	printCredits(gl.xres,gl.yres);
+    		MoathRend(gl.xres, gl.yres, r);
+  }
 }
 
 
