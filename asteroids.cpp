@@ -60,7 +60,6 @@ public:
     	bool creditTest = 0;
 	int xres, yres;
 	char keys[65536];
-	bool creditTest = false;
 	Global() {
 		xres = 1250;
 		yres = 900;
@@ -307,9 +306,9 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
-//===================prototypes for printingcredits
+//prototypes for printing credits
 //stuff called in the key event function
-extern void printCredits(int xres, int yres);
+extern void doPrintCredits(int xres, int yres);
 extern void danielCredits(int x, int y);
 extern void showNagi(int x, int y);
 extern void MoathRend(int x, int y, Rect r);
@@ -888,11 +887,10 @@ void render()
 	}
 
 	//draw credits
-  	void printCredits(int ,int);
 	if (gl.creditTest) {
-	  	printCredits(gl.xres,gl.yres);
-    		MoathRend(gl.xres, gl.yres, r);
-  }
+			doPrintCredits(gl.xres,gl.yres);
+		}
+  
 }
 
 

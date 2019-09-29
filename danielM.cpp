@@ -16,9 +16,9 @@
 
 
 //Daniel McArthur
-//some stuff
-
-void danielCredits(int x, int y)//,image??)
+extern void showNagi(int x, int y);
+extern void MoathRend(int x, int y, Rect r);
+void danielCredits(int x, int y)
 {
 	Rect r;
 	r.bot = y;
@@ -30,21 +30,14 @@ void danielCredits(int x, int y)//,image??)
 	ggprint16(&r, 16, 0xffffffff, "something else i did");
 }
 
-void printCredits(int xres, int yres)
+void doPrintCredits(int xres, int yres)
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	//insert background
 	int xCenter = xres/2;
 	int yCenter = yres/2 ;
-//	int spaceBetweenCredits = 42;
-//	int yStart = 0;	//whatever the bottom of the page is
-	//for(int i=0;i<99999; i++){//while not the exit event
-		danielCredits(xCenter, yCenter);
-		//showNagi(xCenter+42, yCenter+42);
-		//MoathRend(xCenter+84, yCenter+84);
-		//nagiCredits(ycenter,);
-		//moathCredits(yStart-spaceBetweeenCredits + i,xcenter,image);
-		//if(i>yres){i=0;}
-	//};
+	danielCredits(xCenter, yCenter);
+	showNagi(xCenter, yCenter+60);
+	Rect r;
+	MoathRend(xCenter, yCenter+84, r);
 }
 
