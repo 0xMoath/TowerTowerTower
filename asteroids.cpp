@@ -20,7 +20,6 @@
 #include <GL/glx.h>
 #include "log.h"
 #include "fonts.h"
-
 //defined types
 typedef float Flt;
 typedef float Vec[3];
@@ -65,6 +64,7 @@ public:
 		yres = 900;
 		memset(keys, 0, 65536);
 	}
+	char hiScore[3] = "99";
 } gl;
 
 class Ship {
@@ -115,6 +115,12 @@ public:
 	}
 };
 
+class gameScore {
+    public:
+	gameScore();
+	int hiScore = 0;
+	int lowScore = 0;
+};
 class Game {
 public:
 	Ship ship;
@@ -306,13 +312,15 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+//lab3 function
+int lab3val;
 //prototypes for printing credits
 //stuff called in the key event function
 extern void doPrintCredits(int xres, int yres);
 extern void danielCredits(int x, int y);
 extern void showNagi(int x, int y);
 extern void MoathRend(int x, int y, Rect r);
-
+extern int scores(char x[]);
 bool renderKeyPress();
 
 //==========================================================================
@@ -512,6 +520,8 @@ int check_keys(XEvent *e)
 			gl.creditTest = !gl.creditTest;
 			break;
 		case XK_s:
+			//gl.hiScore = "99";
+			scores(gl.hiScore);
 			break;
 		case XK_Down:
 			break;
