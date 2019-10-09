@@ -1,15 +1,15 @@
 //Nagi Obeid Source File
-#include <iostream>
-#include <cstdlib>
-#include <GL/glx.h>
-#include "fonts.h"
-
 //Four Steps of Debugging 10-09-2019
 //1-Identify
 //2-Isolate
 //3-Fix
 //4-Review
 ////////////////////////
+#include <iostream>
+#include <cstdlib>
+#include <GL/glx.h>
+#include "fonts.h"
+
 
 void showNagi(int x, int y)
 {
