@@ -1,25 +1,16 @@
 //Nagi Obeid Source File
+//Four Steps of Debugging 10-09-2019
+//1-Identify
+//2-Isolate
+//3-Fix
+//4-Review
+////////////////////////
 #include <iostream>
 #include <cstdlib>
 #include <GL/glx.h>
 #include "fonts.h"
-/*void showNagiPicture(int x, int y, float ty, GLuint textid);
-{
-    int wid = 40;
-    float fx = 0.0f;
-    static float angle = 0.0f;
 
-    angle += 0.01;
-    fx = sin(angle);
-    y = y - 40;
 
-    glPushMatrix();
-    glTranslatef(x+(int)(fx*30.0),y,0);
-    glcolor3f(1.0f, 0.0f, 0.0f);
-    glBindTexture(GL_TEXTURE_2D, textid);
-    glBegin(GL_QUADS);
-
-}*/
 void showNagi(int x, int y)
 {
     	Rect r;

@@ -1,4 +1,9 @@
-
+//the four steps of debugging
+//1. Recognize the bug
+//2. Identify the cause of the bug
+//3. Fix
+//4. Test
+//
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
