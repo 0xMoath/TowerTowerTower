@@ -321,6 +321,7 @@ extern void doPrintCredits(int xres, int yres);
 extern void danielCredits(int x, int y);
 extern void showNagi(int x, int y);
 extern void MoathRend(int x, int y, Rect r);
+extern void clearScreen();
 
 bool renderKeyPress();
 
@@ -903,14 +904,17 @@ void render()
 
 	//draw credits
 	if (gl.creditTest) {
-			doPrintCredits(gl.xres,gl.yres);
-		}
+		clearScreen();
+		doPrintCredits(gl.xres,gl.yres);
+	}
 	if(gl.scoreS) {
-			//extern int score(char g[]);
-			//score(gl.urrl);
-			//gl.scoreS=!gl.scoreS;
-			extern void ShowScores(Rect r);
-			ShowScores(r);
+		//extern int score(char g[]);
+		//score(gl.urrl);
+		//gl.scoreS=!gl.scoreS;
+		extern void ShowScores(Rect r);
+		ShowScores(r);
+		extern void checkScores(Rect r, int x, int y);
+		checkScores(r, gl.xres, gl.yres);
 	}
 }
 
