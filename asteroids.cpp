@@ -1,4 +1,4 @@
-//
+//TOWER TOWER TOWER GROUP FILE
 //program: asteroids.cpp
 //author:  Gordon Griesel
 //date:    2014 - 2018
@@ -55,9 +55,12 @@ extern double timeSpan;
 extern double timeDiff(struct timespec *start, struct timespec *end);
 extern void timeCopy(struct timespec *dest, struct timespec *source);
 //-----------------------------------------------------------------------------
+
+
 class Global {
 public:
     	bool creditTest = 0, scoreS= 0;
+	bool tttBool = true;
 	//char highS[5][5]= {'\0'};
 	//char Hnames[3][3];
 	char urrl[5] = {'s','c','o','r','e'};
@@ -179,7 +182,6 @@ public:
 	}
 } g;
 
-//X Windows variables
 class X11_wrapper {
 private:
 	Display *dpy;
@@ -315,6 +317,10 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+////////////////////////////////////////////////from nObeid.cpp
+extern void initTTT();
+extern void renderTTT(int x, int y);
+//////////////////////////////////////////////
 //prototypes for printing credits
 //stuff called in the key event function
 extern void doPrintCredits(int xres, int yres);
@@ -374,7 +380,8 @@ void init_opengl(void)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
 	glDisable(GL_CULL_FACE);
-	//
+	//////////////////////////////////////////////////initTTT main image
+	initTTT();
 	//Clear the screen to black
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	//Do this to allow fonts
@@ -521,6 +528,9 @@ int check_keys(XEvent *e)
 		case XK_c:
 			gl.creditTest = !gl.creditTest;
 			break;
+		case XK_m:
+			gl.tttBool = true;
+			break;
 		case XK_s:
 			gl.scoreS = !gl.scoreS;
 			extern int score(char g[]);
@@ -529,6 +539,7 @@ int check_keys(XEvent *e)
 			//score(gl.Hnames);
 			break;
 		case XK_Down:
+			gl.tttBool =  false;
 			break;
 		case XK_equal:
 			break;
@@ -801,8 +812,14 @@ void physics()
 void render()
 {
 	Rect r;
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
 	glClear(GL_COLOR_BUFFER_BIT);
-	//
+	r.bot = gl.yres - 20;
+	r.left = 10;
+	r.center = 0;
+/*	Rect r;
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
+	glClear(GL_COLOR_BUFFER_BIT);
 	r.bot = gl.yres - 20;
 	r.left = 10;
 	r.center = 0;
@@ -810,7 +827,18 @@ void render()
 	ggprint8b(&r, 16, 0x00ffff00, "n bullets: %i", g.nbullets);
 	ggprint8b(&r, 16, 0x00ffff00, "n asteroids: %i", g.nasteroids);
 	ggprint8b(&r, 16, 0x00ff0000, "PRESS 'S' to show high scores");
-	//-------------------------------------------------------------------------
+	ggprint8b(&r, 16, 0x00ff0000, "PRESS DOWN key to show game");
+	ggprint8b(&r, 16, 0x00ff0000, "PRESS 'm' key to show main page");
+	ggprint8b(&r, 16, 0x00ff0000, "PRESS 'c' key to credits page");
+*/	//-------------------------------------------------------------------------
+	//////////////////////////////////////////MainPage
+	if (gl.tttBool == true) {
+		renderTTT(gl.xres, gl.yres);
+	}
+
+	else if (gl.tttBool == false) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
+	glClear(GL_COLOR_BUFFER_BIT);
 	//Draw the ship
 	glColor3fv(g.ship.color);
 	glPushMatrix();
@@ -870,10 +898,6 @@ void render()
 				glVertex2f(a->vert[j][0], a->vert[j][1]);
 			}
 			glEnd();
-			//glBegin(GL_LINES);
-			//	glVertex2f(0,   0);
-			//	glVertex2f(a->radius, 0);
-			//glEnd();
 			glPopMatrix();
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glBegin(GL_POINTS);
@@ -882,7 +906,6 @@ void render()
 			a = a->next;
 		}
 	}
-	//-------------------------------------------------------------------------
 	//Draw the bullets
 	for (int i=0; i<g.nbullets; i++) {
 		Bullet *b = &g.barr[i];
@@ -908,13 +931,22 @@ void render()
 		doPrintCredits(gl.xres,gl.yres);
 	}
 	if(gl.scoreS) {
-		//extern int score(char g[]);
-		//score(gl.urrl);
-		//gl.scoreS=!gl.scoreS;
+		clearScreen();
 		extern void ShowScores(Rect r);
 		ShowScores(r);
 		extern void checkScores(Rect r, int x, int y);
 		checkScores(r, gl.xres, gl.yres);
+	}
+	}/////////////////////////////////////////////////////////////////////////////////////////////////bool trigger
+	
+	if(!gl.scoreS) {
+		ggprint8b(&r, 16, 0x00ff0000, "3350 - Asteroids");
+		ggprint8b(&r, 16, 0x00ffff00, "n bullets: %i", g.nbullets);
+		ggprint8b(&r, 16, 0x00ffff00, "n asteroids: %i", g.nasteroids);
+		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'S' to show high scores");
+		ggprint8b(&r, 16, 0x00ff0000, "PRESS DOWN key to show game");
+		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'm' key to show main page");
+		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'c' key to credits page");
 	}
 }
 
