@@ -120,7 +120,7 @@ int score(char argv[])
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = *(long*)(host->h_addr);
     if (connect(sd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-        BIO_printf(outbio, "%s: Cannot connect to host %s [%s] on port %d.\n",          's', hostname, inet_ntoa(addr.sin_addr), port);
+        BIO_printf(outbio, "%d: Cannot connect to host %s [%s] on port %d.\n",          's', hostname, inet_ntoa(addr.sin_addr), port);
     }
 	//Connect using the SSL certificate.
     ssl = SSL_new(ctx); 

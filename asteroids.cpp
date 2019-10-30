@@ -94,7 +94,8 @@ public:
 		pos[2] = 0.0f;
 		VecZero(vel);
 		angle = 0.0;
-		color[0] = color[1] = color[2] = 1.0;
+		color[0] = 1.0;
+        color[1] = color[2] = 0.0;
 	}
 };
 
@@ -162,8 +163,8 @@ public:
 			a->pos[2] = 0.0f;
 			a->angle = 0.0;
 			a->rotate = rnd() * 4.0 - 2.0;
-			a->color[0] = 0.8;
-			a->color[1] = 0.8;
+			a->color[0] = 0.5;
+			a->color[1] = 0.1;
 			a->color[2] = 0.7;
 			a->vel[0] = (Flt)(rnd()*2.0-1.0);
 			a->vel[1] = (Flt)(rnd()*2.0-1.0);
@@ -313,6 +314,7 @@ public:
 
 //function prototypes
 void init_opengl(void);
+void init();
 void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
@@ -328,6 +330,9 @@ extern void danielCredits(int x, int y);
 extern void showNagi(int x, int y);
 extern void MoathRend(int x, int y, Rect r);
 extern void clearScreen();
+extern void MinitOpengl(void);
+extern void Minit();
+extern void Mrender(int yres);
 
 bool renderKeyPress();
 
@@ -338,6 +343,7 @@ int main()
 {
 	logOpen();
 	init_opengl();
+	init();
 	srand(time(NULL));
 	clock_gettime(CLOCK_REALTIME, &timePause);
 	clock_gettime(CLOCK_REALTIME, &timeStart);
@@ -383,12 +389,17 @@ void init_opengl(void)
 	//////////////////////////////////////////////////initTTT main image
 	initTTT();
 	//Clear the screen to black
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	//glClearColor(0.0, 0.0, 0.0, 1.0);
 	//Do this to allow fonts
 	glEnable(GL_TEXTURE_2D);
 	initialize_fonts();
-}
 
+	MinitOpengl();
+}
+void init() {
+	Minit();
+
+}
 void normalize2d(Vec v)
 {
 	Flt len = v[0]*v[0] + v[1]*v[1];
@@ -441,8 +452,8 @@ void check_mouse(XEvent *e)
 					b->vel[0] += xdir*6.0f + rnd()*0.1;
 					b->vel[1] += ydir*6.0f + rnd()*0.1;
 					b->color[0] = 1.0f;
-					b->color[1] = 1.0f;
-					b->color[2] = 1.0f;
+					b->color[1] = 0.0f;
+					b->color[2] = 0.0f;
 					++g.nbullets;
 				}
 			}
@@ -594,9 +605,9 @@ void buildAsteroidFragment(Asteroid *ta, Asteroid *a)
 	ta->pos[2] = 0.0f;
 	ta->angle = 0.0;
 	ta->rotate = a->rotate + (rnd() * 4.0 - 2.0);
-	ta->color[0] = 0.8;
-	ta->color[1] = 0.8;
-	ta->color[2] = 0.7;
+	ta->color[0] = 1.0;
+	ta->color[1] = 0.0;
+	ta->color[2] = 0.0;
 	ta->vel[0] = a->vel[0] + (rnd()*2.0-1.0);
 	ta->vel[1] = a->vel[1] + (rnd()*2.0-1.0);
 	//std::cout << "frag" << std::endl;
@@ -715,8 +726,8 @@ void physics()
 					}
 				} else {
 					a->color[0] = 1.0;
-					a->color[1] = 0.1;
-					a->color[2] = 0.1;
+					a->color[1] = 0.0;
+					a->color[2] = 0.0;
 					//asteroid is too small to break up
 					//delete the asteroid and bullet
 					Asteroid *savea = a->next;
@@ -817,6 +828,7 @@ void render()
 	r.bot = gl.yres - 20;
 	r.left = 10;
 	r.center = 0;
+
 /*	Rect r;
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -839,6 +851,7 @@ void render()
 	else if (gl.tttBool == false) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
 	glClear(GL_COLOR_BUFFER_BIT);
+	Mrender(gl.yres);
 	//Draw the ship
 	glColor3fv(g.ship.color);
 	glPushMatrix();
