@@ -59,14 +59,16 @@ public:
 			return;
 	}
 };
-Image img[1] = {"./ttt.png"};
-
+Image img[2] = {"./ttt.png", "./balloon.png"};
 class GlobalImage {
 public:
 	GLuint tttTexture;
+	GLuint balloonTexture;
 	int ttt;
+	int balloon;
 	GlobalImage() {
 		ttt=1;
+		balloon=2;
 	}
 	~GlobalImage() {
 	}
@@ -78,6 +80,8 @@ void initTTT()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	//create opengl texture elements
+	//////////////////////////////////
+	//main img texture here
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glGenTextures(1, &nG.tttTexture);
 	glBindTexture(GL_TEXTURE_2D, nG.tttTexture);
@@ -86,6 +90,17 @@ void initTTT()
 	glTexImage2D(GL_TEXTURE_2D, 0, 3,
 		img[0].width, img[0].height,
 		0, GL_RGB, GL_UNSIGNED_BYTE, img[0].data);
+	
+	///////////////////////////////////////
+	//ballon texture here
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &nG.balloonTexture);
+	glBindTexture(GL_TEXTURE_2D, nG.balloonTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3,
+		img[1].width, img[1].height,
+		0, GL_RGB, GL_UNSIGNED_BYTE, img[1].data);
 }
 
 void renderTTT(int x, int y)
@@ -94,10 +109,38 @@ void renderTTT(int x, int y)
 	if (nG.ttt) {
 		glBindTexture(GL_TEXTURE_2D, nG.tttTexture);
 		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 1.0f); 
+			glVertex2i(0, 0);
+			glTexCoord2f(0.0f, 0.0f); 
+			glVertex2i(0, y);
+			glTexCoord2f(1.0f, 0.0f); 
+			glVertex2i(x, y);
+			glTexCoord2f(1.0f, 1.0f); 
+			glVertex2i(x, 0);
+		glEnd();
+	}
+}
+
+void renderBalloon(float x, float y)
+{
+	glColor3f(1.0, 1.0, 1.0);
+	if (nG.balloon) {
+		glBindTexture(GL_TEXTURE_2D, nG.balloonTexture);
+		glBegin(GL_QUADS);
+			/*
 			glTexCoord2f(0.0f, 1.0f); glVertex2i(0, 0);
 			glTexCoord2f(0.0f, 0.0f); glVertex2i(0, y);
 			glTexCoord2f(1.0f, 0.0f); glVertex2i(x, y);
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(x, 0);
+			*/
+			glTexCoord2f(0.0f, 1.0f); 
+			glVertex2i(x,y);
+			glTexCoord2f(0.0f, 0.0f); 
+			glVertex2i(x, y+y/2);
+			glTexCoord2f(1.0f, 0.0f); 
+			glVertex2i(x+x/2, y+y/2);
+			glTexCoord2f(1.0f, 1.0f); 
+			glVertex2i(x+x/2, y);
 		glEnd();
 	}
 }
