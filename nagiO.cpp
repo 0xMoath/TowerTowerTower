@@ -12,45 +12,46 @@
 #include <fstream>
 #include <cstring>
 #include <ctime>
+
+///////DEFINED TYPES////////////
+typedef float Vec[3];
+typedef float Flt;
+///////////MACROS//////////////
+#define rnd() (((Flt)rand())/(Flt)RAND_MAX)
+#define random(a) (rand()%a)
+#define VecZero(v) (v)[0]=0.0,(v)[1]=0.0,(v)[2]=0.0
+#define MakeVector(x, y, z, v) (v)[0]=(x),(v)[1]=(y),(v)[2]=(z)
+#define VecCopy(a,b) (b)[0]=(a)[0];(b)[1]=(a)[1];(b)[2]=(a)[2]
+#define VecDot(a,b)     ((a)[0]*(b)[0]+(a)[1]*(b)[1]+(a)[2]*(b)[2])
+#define VecSub(a,b,c) (c)[0]=(a)[0]-(b)[0]; \
+                                                (c)[1]=(a)[1]-(b)[1]; \
+                                                (c)[2]=(a)[2]-(b)[2]
+////////CONSTANTS//////////////
+const float gravity = 0.2f;
 using namespace std;
 ///////////FUNCTIONS/////////////
-void getScreendims(int x, int y);
 void renderBalloon();
 void getPathcent(int arr[2]);
 void getPatharr(unsigned char arr[18][18]);
+void updateBlnPos();
+//void play();
 ///////////EXTERN////////////////
-extern void Minit();
+extern int getXres();
+extern int getYres();
 /////////////////////////////////
 
 class Path
 {
 public:
-	int cent[2];
-	unsigned char arr[18][18];
-	int startX;
-	int startY;
+	float cent[2];
+	unsigned char mapArr[18][18];
+	double startX;
+	double startY;
+	bool gotMap;
 	Path() {
+		gotMap = false;
 	}
 } pth;
-void getPatharr(unsigned char arr[18][18])
-{
-	for (int i = 0; i < 18; i++) {
-		for (int j = 0; j < 18; j++) {
-			if (arr[i][j] == 's' || arr[i][j] == 'm') {
-				if (arr[i][j] == 's') {
-					pth.startX = i;
-					pth.startY = j;
-       					printf ("STARTx: %d\n",pth.startX);
-       					printf ("STARTy: %d\n",pth.startY);
-				}
-				pth.arr[i][j] = arr[i][j];
-			}
-			if (arr[i][j] == 'b') {
-				pth.arr[i][j] = arr[i][j];
-			}
-		}
-	}
-}
 /*
 void getPathcent(int arr[2])
 {
@@ -72,7 +73,10 @@ public:
         nGlobal() {
                 ttt=1;
                 balloon=2;
-        }
+        	xres = getXres();
+        	yres = getYres();
+		printf ("Yres: %d\n",yres);
+	}
         ~nGlobal() {
         }
 
@@ -81,10 +85,11 @@ public:
 class Balloon
 {
 public:
+	Vec vel;
 	float radius;
 	double hDiff;
 	double wDiff;
-	float cent[2];
+	double cent[2];
 	float xCoor[4];
 	float yCoor[4];
 	struct Balloon* next;
@@ -144,6 +149,52 @@ public:
 	}
 };
 Image img[2] = {"./ttt.png", "./balloon.png"};
+
+
+class nGameBln
+{
+public:
+	Balloon *ahead;
+	nGameBln() {
+		srand(time(NULL));
+		ahead = NULL;
+       		for (int i = 0; i < 1; i++) {
+        		Balloon *b = new Balloon;
+                	b->radius = 25;
+			//b->cent[0] = (rand() % 18);
+			//b->cent[1] = (rand() % 18);
+			b->cent[0] = pth.startY * 80;
+			b->cent[1] = pth.startX * 60 + nG.yres;
+       		//	printf ("STARTx: %d\n",pth.startX);
+       		//	printf ("STARTy: %d\n",pth.startY);
+          		
+			b->xCoor[0] = b->cent[0] - b->wDiff;
+			b->yCoor[0] = b->cent[1] - b->hDiff;
+			
+          		b->xCoor[1] = b->cent[0] - b->wDiff;
+			b->yCoor[1] = b->cent[1] + b->hDiff;
+			
+			b->xCoor[2] = b->cent[0] + b->wDiff;
+			b->yCoor[2] = b->cent[1] + b->hDiff;
+
+          		b->xCoor[3] = b->cent[0] + b->wDiff;
+			b->yCoor[3] = b->cent[1] - b->hDiff;
+			
+			//b->vel[0] = (Flt)(rnd()*2.0-1.0);
+			//b->vel[1] = (Flt)(rnd()*2.0-1.0);
+			b->vel[0] = (0.05*2.0-1.0);
+			b->vel[1] = (0.05*2.0-1.0);
+			printf ("B-VEL[0]: %f\n",b->vel[0]);
+			printf ("B-VEL[1]: %f\n",b->vel[1]);
+			b->next = ahead;
+                	if (ahead != NULL) {
+                		ahead->prev = b;
+                	}
+                	ahead = b;
+		}
+		//printf ("AHEAD CLASS: %p\n",ahead);
+	}
+} nGame;
 
 unsigned char *buildAlphaData(Image *img)
 {
@@ -214,45 +265,90 @@ void renderTTT(int x, int y)
 	}
 }
 
-class nGameBln
+
+void getPatharr(unsigned char arr[18][18])
 {
-public:
-	Balloon *ahead;
-
-	nGameBln() {
-		srand(time(NULL));
-		ahead = NULL;
-       		for (int i = 0; i < 1; i++) {
-        		Balloon *b = new Balloon;
-                	b->radius = 25;
-			//b->cent[0] = (rand() % nG.xres);
-			//b->cent[1] = (rand() % nG.yres);
-			b->cent[0] = pth.startX;
-			b->cent[1] = pth.startY;
-       			printf ("STARTx: %d\n",pth.startX);
-       			printf ("STARTy: %d\n",pth.startY);
-          		
-			b->xCoor[0] = b->cent[0] - b->wDiff;
-			b->yCoor[0] = b->cent[1] - b->hDiff;
-			
-          		b->xCoor[1] = b->cent[0] - b->wDiff;
-			b->yCoor[1] = b->cent[1] + b->hDiff;
-			
-			b->xCoor[2] = b->cent[0] + b->wDiff;
-			b->yCoor[2] = b->cent[1] + b->hDiff;
-
-          		b->xCoor[3] = b->cent[0] + b->wDiff;
-			b->yCoor[3] = b->cent[1] - b->hDiff;
-
-			b->next = ahead;
-                	if (ahead != NULL) {
-                		ahead->prev = b;
-                	}
-                	ahead = b;
+	for (int i = 0; i < 18; i++) {
+		for (int j = 0; j < 18; j++) {
+			if (arr[i][j] == 's' || arr[i][j] == 'm') {
+				if (arr[i][j] == 's') {
+					pth.startX = -1*i - 0.5;
+					pth.startY = j + 0.5;
+       				//	printf ("STARTx: %d\n",pth.startX);
+       				//	printf ("STARTy: %d\n",pth.startY);
+				}
+				pth.mapArr[i][j] = arr[i][j];
+			}
+			if (arr[i][j] == 'b') {
+				pth.mapArr[i][j] = arr[i][j];
+			}
 		}
 	}
-} nGame;
+	pth.gotMap = true;
+}
+void updateBlnPos()
+{
+	float dirx = 0;
+	float diry = 0;
+	Balloon *b = nGame.ahead;
+	//printf ("AHEAD from UPDATE: %p\n",nGame.ahead);	
+	while(b) {
+		for (int i = 0; i < 18; i++) {
+			for (int j = 0; j < 18; j++) {
+					////////////////////starting pos
+					if (pth.mapArr[i][j] == 's' || pth.mapArr[i][j] == 'm') {
+						dirx = 0;
+						diry = 0;
+					//b->cent[0] = (j-0.5) * 85;
+					//b->cent[1] = -1 * (i+0.5) * 60 + nG.yres;
+					}
+					//////////////Dm-Lb-Rb
+					if (pth.mapArr[i-1][j] == 'b' && pth.mapArr[i+1][j] == 'b'
+							&& pth.mapArr[i][j+1] == 'm') {
+						dirx = 0;
+						diry = -1;
+					}
+					//////////////Usm-Db-Lm-Rb
+					else if (pth.mapArr[i+1][j] == 'b' && pth.mapArr[i][j+1] == 'b'
+							&& pth.mapArr[i-1][j] == 'm'
+							&& (pth.mapArr[i][j-1] == 'm'
+							|| pth.mapArr[i][j-1] == 's')) {
+						dirx = -1;
+						diry = 0;
+					}
+					//////////////Ub-Db-Lm-Rm
+					else if (pth.mapArr[i][j-1] == 'b' && pth.mapArr[i][j+1] == 'b'
+							&& pth.mapArr[i-1][j] == 'm'
+							&& pth.mapArr[i+1][j] == 'm') {
+						dirx = -1;
+						diry = 0;
+					}
+					//////////////Ub-Dm-Lb-Rm
+					else if (pth.mapArr[i-1][j] == 'b' && pth.mapArr[i][j-1] == 'b'
+							&& pth.mapArr[i+1][j] == 'm'
+							&& pth.mapArr[i][j+1] == 'm') {
+					
+					}
+					b->cent[0] += b->vel[0]*dirx /20;
+					b->cent[1] += b->vel[1]*diry /20;
+					
+					b->xCoor[0] = b->cent[0] - b->wDiff;
+					b->yCoor[0] = b->cent[1] - b->hDiff;
+			
+          				b->xCoor[1] = b->cent[0] - b->wDiff;
+					b->yCoor[1] = b->cent[1] + b->hDiff;
+			
+					b->xCoor[2] = b->cent[0] + b->wDiff;
+					b->yCoor[2] = b->cent[1] + b->hDiff;
 
+          				b->xCoor[3] = b->cent[0] + b->wDiff;
+					b->yCoor[3] = b->cent[1] - b->hDiff;
+					//printf ("MAPARR: %c\n",pth.mapArr[i][j]);
+			}
+		}
+		b = b->next;
+	}
+}
 void showNagi(int x, int y)
 {
     	Rect r;
@@ -306,14 +402,10 @@ void checkScores(Rect r, int x, int y)
 	r.left = x/2;	
 	ggprint16(&r, 16, 0xfff0, "HISCORE:%i", hiscore);
 }
-void getScreendims(int x, int y)
-{
-	nG.xres = x;
-	nG.yres = y;
-}
 void renderBalloon()
 {
 	Balloon *b = nGame.ahead;
+	//printf ("AHEAD from RENDERBALLOON: %p\n",nGame.ahead);
 	while (b) {
 		glColor3f(1.0, 1.0, 1.0);
                 if (nG.balloon) {
@@ -338,4 +430,3 @@ void renderBalloon()
                 }
 	}
 }
-
