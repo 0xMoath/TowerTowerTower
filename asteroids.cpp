@@ -41,7 +41,7 @@ const float timeslice = 1.0f;
 const float gravity = -0.2f;
 #define PI 3.141592653589793
 #define ALPHA 1
-const int MAX_BULLETS = 11;
+const int MAX_BULLETS = 9000;
 const Flt MINIMUM_ASTEROID_SIZE = 60.0;
 
 //-----------------------------------------------------------------------------
@@ -120,6 +120,25 @@ public:
 	}
 };
 
+class Tower {//derived from Ship class
+public:
+	Vec dir;
+	Vec pos;
+	float angle;
+	float angleVel;
+	float color[3];
+public:
+	Tower() {
+		VecZero(dir);
+		pos[0] = (Flt)(gl.xres/2);
+		pos[1] = (Flt)(gl.yres/2);
+		pos[2] = 0.0f;
+		angle = 0.0;
+		color[0] = color[1] = color[2] = 1.0;
+	}
+};
+
+
 class Bullet {
 public:
 	Vec pos;
@@ -151,6 +170,7 @@ public:
 
 class Game {
 public:
+	Tower tower;//////
 	Ship ship;
 	Asteroid *ahead;
 	Bullet *barr;
@@ -405,7 +425,7 @@ int main()
 
 void init_opengl(void)
 {
-	//OpenGL initialization
+	//OpnGL initialization
 	glViewport(0, 0, gl.xres, gl.yres);
 	//Initialize matrices
 	glMatrixMode(GL_PROJECTION); glLoadIdentity();

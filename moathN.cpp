@@ -228,6 +228,8 @@ void MoathRend(int x, int y, Rect r)
 	r.center=0;
 
 	ggprint16(&r, 16, 0xfff0, "Moath's File");
+	//this is my friday code plz ask questions if it isnt clear
+	ggprint16(&r, 16, 0xfff0, "Hello Friday world");
 
 }
 void ShowScores(Rect r)
