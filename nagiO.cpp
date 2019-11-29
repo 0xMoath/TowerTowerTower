@@ -34,6 +34,7 @@ void renderBalloon();
 void getPathcent(int arr[2]);
 void getPatharr(unsigned char arr[18][18]);
 void updateBlnPos();
+void getStop(float x);
 //void play();
 ///////////EXTERN////////////////
 extern int getXres();
@@ -52,15 +53,7 @@ public:
 		gotMap = false;
 	}
 } pth;
-/*
-void getPathcent(int arr[2])
-{
-	pth.cent[0] = arr[0];
-	pth.cent[1] = arr[1];
-       	printf ("cent[0]: %d\n",pth.cent[0]);
-       	printf ("cent[1]: %d\n",pth.cent[1]);
-}
-*/
+
 class nGlobal
 {
 public:
@@ -85,20 +78,26 @@ public:
 class Balloon
 {
 public:
+	
 	Vec vel;
 	float radius;
 	double hDiff;
 	double wDiff;
-	double cent[2];
+	float cent[2];
 	float xCoor[4];
 	float yCoor[4];
+	int currX;
+	int currY;
+	int stop;
+	int go;
 	struct Balloon* next;
 	struct Balloon* prev;
 	Balloon() {
 		next = NULL;
 		prev = NULL;
 		wDiff = 50;
-		hDiff = 37.5;
+		hDiff = 30.0;//37.5;
+		go = 1;
 	}
 } bln;
 
@@ -161,38 +160,24 @@ public:
        		for (int i = 0; i < 1; i++) {
         		Balloon *b = new Balloon;
                 	b->radius = 25;
-			//b->cent[0] = (rand() % 18);
-			//b->cent[1] = (rand() % 18);
+			
+			///X COORDINATE
 			b->cent[0] = pth.startY * 80;
+       			printf ("B->CENT[0]: %f\n",b->cent[0]);
+			b->currX = pth.startY -0.5;
+			
+			///Y COORDINATE
 			b->cent[1] = pth.startX * 60 + nG.yres;
-       		//	printf ("STARTx: %d\n",pth.startX);
-       		//	printf ("STARTy: %d\n",pth.startY);
-          		
-			b->xCoor[0] = b->cent[0] - b->wDiff;
-			b->yCoor[0] = b->cent[1] - b->hDiff;
-			
-          		b->xCoor[1] = b->cent[0] - b->wDiff;
-			b->yCoor[1] = b->cent[1] + b->hDiff;
-			
-			b->xCoor[2] = b->cent[0] + b->wDiff;
-			b->yCoor[2] = b->cent[1] + b->hDiff;
-
-          		b->xCoor[3] = b->cent[0] + b->wDiff;
-			b->yCoor[3] = b->cent[1] - b->hDiff;
-			
-			//b->vel[0] = (Flt)(rnd()*2.0-1.0);
-			//b->vel[1] = (Flt)(rnd()*2.0-1.0);
-			b->vel[0] = (0.05*2.0-1.0);
-			b->vel[1] = (0.05*2.0-1.0);
-			printf ("B-VEL[0]: %f\n",b->vel[0]);
-			printf ("B-VEL[1]: %f\n",b->vel[1]);
+       			printf ("B->CENT[1]: %f\n",b->cent[1]);
+			b->currY = pth.startX + 0.5;
+			b->vel[0] = 0.05;
+			b->vel[1] = 0.05;
 			b->next = ahead;
                 	if (ahead != NULL) {
                 		ahead->prev = b;
                 	}
                 	ahead = b;
 		}
-		//printf ("AHEAD CLASS: %p\n",ahead);
 	}
 } nGame;
 
@@ -273,9 +258,8 @@ void getPatharr(unsigned char arr[18][18])
 			if (arr[i][j] == 's' || arr[i][j] == 'm') {
 				if (arr[i][j] == 's') {
 					pth.startX = -1*i - 0.5;
+					////startY is actually horizantal position
 					pth.startY = j + 0.5;
-       				//	printf ("STARTx: %d\n",pth.startX);
-       				//	printf ("STARTy: %d\n",pth.startY);
 				}
 				pth.mapArr[i][j] = arr[i][j];
 			}
@@ -288,64 +272,99 @@ void getPatharr(unsigned char arr[18][18])
 }
 void updateBlnPos()
 {
-	float dirx = 0;
-	float diry = 0;
 	Balloon *b = nGame.ahead;
-	//printf ("AHEAD from UPDATE: %p\n",nGame.ahead);	
+		float dirx = 0.00;
+		float diry = 0.00;
+		int xx,yy;
+		bool down = false;
+		bool left = false;
+		bool right = false;
 	while(b) {
-		for (int i = 0; i < 18; i++) {
-			for (int j = 0; j < 18; j++) {
-					////////////////////starting pos
-					if (pth.mapArr[i][j] == 's' || pth.mapArr[i][j] == 'm') {
-						dirx = 0;
-						diry = 0;
-					//b->cent[0] = (j-0.5) * 85;
-					//b->cent[1] = -1 * (i+0.5) * 60 + nG.yres;
-					}
-					//////////////Dm-Lb-Rb
-					if (pth.mapArr[i-1][j] == 'b' && pth.mapArr[i+1][j] == 'b'
-							&& pth.mapArr[i][j+1] == 'm') {
-						dirx = 0;
-						diry = -1;
-					}
-					//////////////Usm-Db-Lm-Rb
-					else if (pth.mapArr[i+1][j] == 'b' && pth.mapArr[i][j+1] == 'b'
-							&& pth.mapArr[i-1][j] == 'm'
-							&& (pth.mapArr[i][j-1] == 'm'
-							|| pth.mapArr[i][j-1] == 's')) {
-						dirx = -1;
-						diry = 0;
-					}
-					//////////////Ub-Db-Lm-Rm
-					else if (pth.mapArr[i][j-1] == 'b' && pth.mapArr[i][j+1] == 'b'
-							&& pth.mapArr[i-1][j] == 'm'
-							&& pth.mapArr[i+1][j] == 'm') {
-						dirx = -1;
-						diry = 0;
-					}
-					//////////////Ub-Dm-Lb-Rm
-					else if (pth.mapArr[i-1][j] == 'b' && pth.mapArr[i][j-1] == 'b'
-							&& pth.mapArr[i+1][j] == 'm'
-							&& pth.mapArr[i][j+1] == 'm') {
-					
-					}
-					b->cent[0] += b->vel[0]*dirx /20;
-					b->cent[1] += b->vel[1]*diry /20;
-					
-					b->xCoor[0] = b->cent[0] - b->wDiff;
-					b->yCoor[0] = b->cent[1] - b->hDiff;
-			
-          				b->xCoor[1] = b->cent[0] - b->wDiff;
-					b->yCoor[1] = b->cent[1] + b->hDiff;
-			
-					b->xCoor[2] = b->cent[0] + b->wDiff;
-					b->yCoor[2] = b->cent[1] + b->hDiff;
-
-          				b->xCoor[3] = b->cent[0] + b->wDiff;
-					b->yCoor[3] = b->cent[1] - b->hDiff;
-					//printf ("MAPARR: %c\n",pth.mapArr[i][j]);
+			////////////////////Down
+			if (pth.mapArr[b->currY+1][b->currX] == 'm') {
+			dirx = 0.00;
+			diry = -2.00;
+			if (b->go == 1) {
+				b->go = 0;
+				b->stop = b->cent[1] - 60;
 			}
-		}
+			down = true;
+			}
+			
+			//////////////////////left
+			if (pth.mapArr[b->currY][b->currX-1] == 'm'){
+			dirx = -2.00;
+			diry = 0.00;
+			if (b->go == 1) {
+				b->go = 0;
+				b->stop = b->cent[0] - 80;
+			}
+			left = true;
+			}
+			/*
+			//////////////////////right
+			if (pth.mapArr[b->currY][b->currX+1] == 'm') {
+			dirx = 2.00;
+			diry = 0.00;
+			if (b->go == 1) {
+				b->go = 0;
+				b->stop = b->cent[0] + 80;
+			}
+			right = true;
+			printf ("move right:%f\n",dirx);	
+			}
+			*/
+			////////////////CHECKING///////////////////////////////////
+			///////////////////////////////////////////////////////////
+			
+			///////////////////DOWN
+			if ((b->cent[1] != b->stop) && down) {
+			b->cent[0] += dirx;
+			b->cent[1] += diry;
+			} else if (b->cent[1] == b->stop){
+				b->currX = b->currX;
+				b->currY = b->currY+1;
+				down = false;
+				b->go = 1;
+				b->stop = 0;
+			printf ("MOVING DOWN...%d\n", 0);
+			printf ("b->currX; %d\n", b->currX);
+			printf ("b->currY; %d\n", b->currY);
+			printf ("--------------%d\n", 0);
+			}
+			
+			///////////////////LEFT
+			if ((b->cent[0] != b->stop) && left) {
+			b->cent[0] += dirx;
+			b->cent[1] += diry;
+			} else if (b->cent[0] == b->stop) {
+				b->currX = b->currX - 1;
+				b->currY = b->currY;
+				left = false;
+				b->go = 1;
+				b->stop = 0;
+			printf ("MOVING LEFT...%d\n", 0);
+			printf ("b->currX; %d\n", b->currX);
+			printf ("b->currY; %d\n", b->currY);
+			printf ("--------------%d\n", 0);
+			}
+			/*
+			///////////////////RIGHT
+			if ((b->cent[0] != b->stop) && right) {
+			b->cent[0] += dirx;
+			b->cent[1] += diry;
+			printf ("b->currX; %d\n", b->currX);
+			printf ("b->currY; %d\n", b->currY);
+			printf ("B-cent[1]: %f\n",b->cent[1]);	
+			} else if (b->cent[0] == b->stop) {
+				b->currX = b->currX + 1;
+				b->currY = b->currY;
+				right = false;
+				b->go = 1;
+				b->stop = 0;
+			}
+			*/
+
 		b = b->next;
 	}
 }
@@ -405,7 +424,6 @@ void checkScores(Rect r, int x, int y)
 void renderBalloon()
 {
 	Balloon *b = nGame.ahead;
-	//printf ("AHEAD from RENDERBALLOON: %p\n",nGame.ahead);
 	while (b) {
 		glColor3f(1.0, 1.0, 1.0);
                 if (nG.balloon) {
@@ -415,14 +433,14 @@ void renderBalloon()
                         glAlphaFunc(GL_GREATER, 0.0f);
                         glColor4ub(255,255,255,255);
                         glBegin(GL_QUADS);
-                                glTexCoord2f(0.0f, 1.0f);
-                                glVertex2i(b->xCoor[0],b->yCoor[0]);
+				glTexCoord2f(0.0f, 1.0f);
+                                glVertex2i(b->cent[0] - b->wDiff ,b->cent[1] - b->hDiff );
                                 glTexCoord2f(0.0f, 0.0f);
-                                glVertex2i(b->xCoor[1], b->yCoor[1]);
+                                glVertex2i(b->cent[0] - b->wDiff ,b->cent[1] + b->hDiff );
                                 glTexCoord2f(1.0f, 0.0f);
-                                glVertex2i(b->xCoor[2], b->yCoor[2]);
+                                glVertex2i(b->cent[0] + b->wDiff ,b->cent[1] + b->hDiff );
                                 glTexCoord2f(1.0f, 1.0f);
-                                glVertex2i(b->xCoor[3], b->yCoor[3]);
+                                glVertex2i(b->cent[0] + b->wDiff ,b->cent[1] - b->hDiff );
                         glEnd();
                         glPopMatrix();
                         glDisable(GL_ALPHA_TEST);
