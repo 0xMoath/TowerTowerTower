@@ -87,7 +87,12 @@ class MLevel {
                 }
                 printf("\n");
             }
-        }
+        
+	//////////////////////////////////////////////
+        extern void getPatharr(unsigned char arr[18][18]);
+        getPatharr(arr);
+        /////////////////////////////////////////////
+	}
         void removeCrLf(char *str) {
             //remove carriage return and linefeed from a Cstring
             char *p = str;
@@ -246,14 +251,13 @@ void Mrender(int yres)
 {
     //Rect r;
     int cent[2];
-    
     for (int i=0; i<18; i++) {
         for (int j=0; j<18; j++) {
             if (mlev.arr[i][j] == 'm' || mlev.arr[i][j] == 'e' || mlev.arr[i][j] == 's') {
                 glColor3f(1.0, 1.0, 1.0);
                 //put tile in its place
-                get_grid_center(1,i,j,cent);
-                glBindTexture(GL_TEXTURE_2D, mgl.iceTex);
+		get_grid_center(1,i,j,cent);
+		glBindTexture(GL_TEXTURE_2D, mgl.iceTex);
                 glBegin(GL_QUADS);
                 glTexCoord2f(0.0f, 0.0f);
                 glVertex2i(cent[0],yres-cent[1]-qsize2);

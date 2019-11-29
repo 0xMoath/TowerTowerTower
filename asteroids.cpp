@@ -55,12 +55,33 @@ extern double timeSpan;
 extern double timeDiff(struct timespec *start, struct timespec *end);
 extern void timeCopy(struct timespec *dest, struct timespec *source);
 //-----------------------------------------------------------------------------
+/*
+class Global {
+public:
+	bool creditTest = 0, scoreS= 0;
+        bool tttBool = true;
+        bool gameOn = false;
+        //char highS[5][5]= {'\0'};
+        //char Hnames[3][3];
+        char urrl[5] = {'s','c','o','r','e'};
+        int xres, yres;
+        char keys[65536];
 
+private:
+	static Global *gl;
+	Global() {
+		xres = 1250;
+                yres = 900;
+                memset(keys, 0, 65536);	
+	}
+}
 
+*/
 class Global {
 public:
     	bool creditTest = 0, scoreS= 0;
 	bool tttBool = true;
+	bool gameOn = false;
 	//char highS[5][5]= {'\0'};
 	//char Hnames[3][3];
 	char urrl[5] = {'s','c','o','r','e'};
@@ -71,11 +92,11 @@ public:
 		yres = 900;
 		memset(keys, 0, 65536);
 	
-		/*for(int i = 0; i < 3; i++) {
-		    for(int j = 0; j < 3; j++) {
-			Hnames[i][j] = 
-		    }
-		}*/
+		//for(int i = 0; i < 3; i++) {
+		//    for(int j = 0; j < 3; j++) {
+		//	Hnames[i][j] = 
+		//   }
+		//}
 	}
 } gl;
 
@@ -115,7 +136,7 @@ public:
 	Vec vel;
 	int nverts;
 	Flt radius;
-	Vec vert[8];
+	Vec vert[20];
 	float angle;
 	float rotate;
 	float color[3];
@@ -146,10 +167,11 @@ public:
 		nbullets = 0;
 		mouseThrustOn = false;
 		//build 10 asteroids...
+		//for (int j=0; j<1; j++) {
 		for (int j=0; j<10; j++) {
 			Asteroid *a = new Asteroid;
-			a->nverts = 8;
-			a->radius = rnd()*80.0 + 40.0;
+			a->nverts = 20;
+			a->radius = 25;//rnd()*80.0 + 40.0;
 			Flt r2 = a->radius / 2.0;
 			Flt angle = 0.0f;
 			Flt inc = (PI * 2.0) / (Flt)a->nverts;
@@ -319,9 +341,16 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics();
 void render();
+int getXres();
+int getYres();
 ////////////////////////////////////////////////from nObeid.cpp
 extern void initTTT();
 extern void renderTTT(int x, int y);
+//extern void renderBalloon(int a, int b);
+extern void renderBalloon();
+extern void updateBlnPos();
+//extern void getScreendims(int x, int y);
+//extern void renderBalloon();
 //////////////////////////////////////////////
 //prototypes for printing credits
 //stuff called in the key event function
@@ -362,8 +391,10 @@ int main()
 		physicsCountdown += timeSpan;
 		while (physicsCountdown >= physicsRate) {
 			physics();
+			//updateBlnPos();
 			physicsCountdown -= physicsRate;
 		}
+
 		render();
 		x11.swapBuffers();
 	}
@@ -399,6 +430,14 @@ void init_opengl(void)
 void init() {
 	Minit();
 
+}
+int getXres()
+{
+	return gl.xres;
+}
+int getYres()
+{
+	return gl.yres;
 }
 void normalize2d(Vec v)
 {
@@ -553,6 +592,7 @@ int check_keys(XEvent *e)
 			gl.tttBool =  false;
 			break;
 		case XK_equal:
+			gl.gameOn = true;
 			break;
 		case XK_minus:
 			break;
@@ -668,7 +708,10 @@ void physics()
 		}
 		i++;
 	}
-	//
+	
+	//Update balloon position
+	updateBlnPos();
+
 	//Update asteroid positions
 	Asteroid *a = g.ahead;
 	while (a) {
@@ -849,6 +892,7 @@ void render()
 	}
 
 	else if (gl.tttBool == false) {
+	//if (gl.tttBool == true) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
 	glClear(GL_COLOR_BUFFER_BIT);
 	Mrender(gl.yres);
@@ -937,6 +981,9 @@ void render()
 		glVertex2f(b->pos[0]+1.0f, b->pos[1]+1.0f);
 		glEnd();
 	}
+
+	//renderBalloon(gl.xres, gl.yres);////////////////////////////nobeid
+	renderBalloon();//////////////////////////////////////////////nobeid
 
 	//draw credits
 	if (gl.creditTest) {
