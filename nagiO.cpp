@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstring>
 #include <ctime>
+#include <unistd.h>
 
 ///////DEFINED TYPES////////////
 typedef float Vec[3];
@@ -90,14 +91,21 @@ public:
 	int currY;
 	int stop;
 	int go;
+	bool startNext;
+	bool startMoving;
 	struct Balloon* next;
 	struct Balloon* prev;
+	bool goleft;
+	bool goright;
+	bool goDown;
+	bool goUp;
 	Balloon() {
 		next = NULL;
 		prev = NULL;
 		wDiff = 50;
 		hDiff = 30.0;//37.5;
 		go = 1;
+		startMoving = false;
 	}
 } bln;
 
@@ -157,7 +165,7 @@ public:
 	nGameBln() {
 		srand(time(NULL));
 		ahead = NULL;
-       		for (int i = 0; i < 1; i++) {
+       		for (int i = 0; i < 50; i++) {
         		Balloon *b = new Balloon;
                 	b->radius = 25;
 			
@@ -277,95 +285,114 @@ void updateBlnPos()
 		float diry = 0.00;
 		int xx,yy;
 		bool down = false;
-		bool left = false;
-		bool right = false;
+		//bool left = false;
+		//bool right = false;
 	while(b) {
-			////////////////////Down
+			/////////////////////chec if prev is null//////////
+			if ( b->prev != NULL && b->prev->cent[1] > 1414 && b->prev->cent[0] > 600) {
+				printf ("NOT NULL: %d\n",0);
+				b->cent[0] += 0.00;
+				b->cent[1] += 0.00;
+			} else {
+				b->startMoving = true;
+			}
+			
+			if (b->prev == NULL || b->startMoving) {
+			
+			///////////////////////Down/////////////////////////
 			if (pth.mapArr[b->currY+1][b->currX] == 'm') {
-			dirx = 0.00;
-			diry = -2.00;
-			if (b->go == 1) {
-				b->go = 0;
-				b->stop = b->cent[1] - 60;
-			}
-			down = true;
-			}
-			
-			//////////////////////left
-			if (pth.mapArr[b->currY][b->currX-1] == 'm'){
-			dirx = -2.00;
-			diry = 0.00;
-			if (b->go == 1) {
-				b->go = 0;
-				b->stop = b->cent[0] - 80;
-			}
-			left = true;
-			}
-			/*
-			//////////////////////right
-			if (pth.mapArr[b->currY][b->currX+1] == 'm') {
-			dirx = 2.00;
-			diry = 0.00;
-			if (b->go == 1) {
-				b->go = 0;
-				b->stop = b->cent[0] + 80;
-			}
-			right = true;
-			printf ("move right:%f\n",dirx);	
-			}
-			*/
-			////////////////CHECKING///////////////////////////////////
-			///////////////////////////////////////////////////////////
-			
-			///////////////////DOWN
-			if ((b->cent[1] != b->stop) && down) {
-			b->cent[0] += dirx;
-			b->cent[1] += diry;
-			} else if (b->cent[1] == b->stop){
-				b->currX = b->currX;
-				b->currY = b->currY+1;
-				down = false;
-				b->go = 1;
-				b->stop = 0;
-			printf ("MOVING DOWN...%d\n", 0);
-			printf ("b->currX; %d\n", b->currX);
-			printf ("b->currY; %d\n", b->currY);
-			printf ("--------------%d\n", 0);
+				b->goDown = true;
+				b->goUp = false;
+				if (b->goDown) {
+					dirx = 0.00;
+					diry = -1.00;
+					if (b->go == 1) {
+						b->go = 0;
+						b->stop = b->cent[1] - 60;
+						printf ("DOWN STOP COOR: %d\n",b->stop);
+					}
+				}
+				/*
+				if (b->go == 1) {
+					b->go = 0;
+					b->stop = b->cent[1] - 60;
+					printf ("DOWN STOP COOR: %d\n",b->stop);
+				}*/
+			//down = true;
 			}
 			
-			///////////////////LEFT
-			if ((b->cent[0] != b->stop) && left) {
-			b->cent[0] += dirx;
-			b->cent[1] += diry;
-			} else if (b->cent[0] == b->stop) {
-				b->currX = b->currX - 1;
-				b->currY = b->currY;
-				left = false;
-				b->go = 1;
-				b->stop = 0;
-			printf ("MOVING LEFT...%d\n", 0);
-			printf ("b->currX; %d\n", b->currX);
-			printf ("b->currY; %d\n", b->currY);
-			printf ("--------------%d\n", 0);
-			}
-			/*
-			///////////////////RIGHT
-			if ((b->cent[0] != b->stop) && right) {
-			b->cent[0] += dirx;
-			b->cent[1] += diry;
-			printf ("b->currX; %d\n", b->currX);
-			printf ("b->currY; %d\n", b->currY);
-			printf ("B-cent[1]: %f\n",b->cent[1]);	
-			} else if (b->cent[0] == b->stop) {
-				b->currX = b->currX + 1;
-				b->currY = b->currY;
-				right = false;
-				b->go = 1;
-				b->stop = 0;
-			}
-			*/
+			//////////////////////left////////////Right/////////
+			else if (pth.mapArr[b->currY][b->currX-1] == 'm' || pth.mapArr[b->currY][b->currX+1] == 'm'){
+				if (pth.mapArr[b->currY][b->currX+1] == 'b'){
+					b->goleft = true;
+					b->goright = false;
+				}
+				else if (pth.mapArr[b->currY][b->currX-1] == 'b'){
+					b->goleft = false;
+					b->goright = true;
+				}
 
-		b = b->next;
+				if (b->goleft) {
+					dirx = -2.00;
+					diry = 0.00;
+					if (b->go == 1) {
+						b->go = 0;
+						b->stop = b->cent[0] - 80;
+					}
+				}
+
+				else if (b->goright) {
+					dirx = 2.00;
+					diry = 0.00;
+					if (b->go == 1) {
+						b->go = 0;
+						b->stop = b->cent[0] + 80;
+					}
+				}
+			}
+			
+			////////////////CHECKING///////////////////////////////////
+			
+			///////////////////DOWN///////////////////////////////////
+			if ((b->cent[1] != b->stop) && b->goDown) {
+				b->cent[0] += dirx;
+				b->cent[1] += diry;
+				printf ("DOWN POS: %f\n",b->cent[1]);
+				printf ("DOWN moved COOR: %f\n",b->cent[1]);
+			} else if (b->cent[1] == b->stop){
+				if (b->goDown) {
+					b->currX = b->currX;
+					b->currY = b->currY+1;
+				}
+				b->goDown = false;
+				b->go = 1;
+				b->stop = 0;
+				dirx = 0.00;
+				diry = 0.00;
+			}
+			
+			///////////////////LEFT or RIGHT////////////////////////
+			if ((b->cent[0] != b->stop) && (b->goleft || b->goright)) {
+				b->cent[0] += dirx;
+				b->cent[1] += diry;
+			} else if (b->cent[0] == b->stop) {
+				if (b->goleft) {
+					b->currX = b->currX - 1;
+					b->currY = b->currY;
+				}
+				else if (b->goright) {
+					b->currX = b->currX + 1;
+					b->currY = b->currY;
+				}
+				//b->goleft = false;
+				//b->goright = false;
+				b->go = 1;
+				b->stop = 0;
+				dirx = 0.00;
+				diry = 0.00;
+			}
+			}//if b->prev == null
+			b=b->next;
 	}
 }
 void showNagi(int x, int y)
