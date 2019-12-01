@@ -109,6 +109,8 @@ public:
 	}
 } bln;
 
+//IMAGE CLASS WAS NOT IN OUR CHOSEN FRAMEWORK, 
+//HAD TO MIGRATE TO INDIVIVIDUAL CPP FILE
 class Image {
 public:
 	int width, height;
