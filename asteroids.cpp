@@ -54,6 +54,7 @@ extern double physicsCountdown;
 extern double timeSpan;
 extern double timeDiff(struct timespec *start, struct timespec *end);
 extern void timeCopy(struct timespec *dest, struct timespec *source);
+extern void checkHover(int x, int y, int yres);
 //-----------------------------------------------------------------------------
 /*
 class Global {
@@ -79,9 +80,14 @@ private:
 */
 class Global {
 public:
+	///////////////////////////////moath add
+	bool PlaceTur = false;
+	int typetur = 0;
+	//moath add
     	bool creditTest = 0, scoreS= 0;
 	bool tttBool = true;
 	bool gameOn = false;
+	bool gamePause = true;
 	//char highS[5][5]= {'\0'};
 	//char Hnames[3][3];
 	char urrl[5] = {'s','c','o','r','e'};
@@ -191,7 +197,7 @@ public:
 		for (int j=0; j<10; j++) {
 			Asteroid *a = new Asteroid;
 			a->nverts = 20;
-			a->radius = 25;//rnd()*80.0 + 40.0;
+			a->radius = rnd()*80.0 + 40.0;
 			Flt r2 = a->radius / 2.0;
 			Flt angle = 0.0f;
 			Flt inc = (PI * 2.0) / (Flt)a->nverts;
@@ -204,7 +210,7 @@ public:
 			a->pos[1] = (Flt)(rand() % gl.yres);
 			a->pos[2] = 0.0f;
 			a->angle = 0.0;
-			a->rotate = rnd() * 4.0 - 2.0;
+			a->rotate = 360;//rnd() * 4.0 - 2.0;
 			a->color[0] = 0.5;
 			a->color[1] = 0.1;
 			a->color[2] = 0.7;
@@ -382,7 +388,13 @@ extern void clearScreen();
 extern void MinitOpengl(void);
 extern void Minit();
 extern void Mrender(int yres);
-
+/////////////////////////moath
+extern void checkT(int x);
+extern void renderTur(int x);
+extern void clearhover();
+extern bool checkColitur(int, int, int, int, int);
+extern void UpdateTurColi();
+//////////////////////////////
 bool renderKeyPress();
 
 //==========================================================================
@@ -478,6 +490,8 @@ void check_mouse(XEvent *e)
 	//Was a mouse button clicked?
 	static int savex = 0;
 	static int savey = 0;
+	int x;
+	int y;
 	//
 	static int ct=0;
 	//std::cout << "m" << std::endl << std::flush;
@@ -487,6 +501,9 @@ void check_mouse(XEvent *e)
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button is down
+			if(gl.PlaceTur) {
+				checkT(gl.typetur);
+			}
 			//a little time between each bullet
 			struct timespec bt;
 			clock_gettime(CLOCK_REALTIME, &bt);
@@ -567,6 +584,14 @@ void check_mouse(XEvent *e)
 		savex=100;
 		savey=100;
 	}
+	if(x==savex && y == savey) {
+		return;
+	}
+	savex = x;
+	savey = y;
+	if(gl.PlaceTur) {
+		checkhover(x,y,gl.yres);
+	}
 }
 
 int check_keys(XEvent *e)
@@ -598,8 +623,27 @@ int check_keys(XEvent *e)
 		case XK_c:
 			gl.creditTest = !gl.creditTest;
 			break;
+		case XK_t:
+			gl.PlaceTur = !gl.PlaceTur;
+			if(!gl.PlaceTur) {
+				clearhover();
+			}
+			break;
 		case XK_m:
-			gl.tttBool = true;
+			gl.tttBool = !gl.tttBool;
+			break;
+		case XK_1:
+			if(gl.PlaceTur) {
+				gl.typetur = 1;
+			};
+			break;
+		case XK_0:
+			if(gl.PlaceTur) {
+				gl.typetur = 0;
+			};
+			break;
+		case XK_g:
+			gl.gamePause = !gl.gamePause;
 			break;
 		case XK_s:
 			gl.scoreS = !gl.scoreS;
@@ -676,6 +720,8 @@ void buildAsteroidFragment(Asteroid *ta, Asteroid *a)
 void physics()
 {
 	Flt d0,d1,dist;
+	int yt = 0;
+	int xt = 0;
 	//Update ship position
 	g.ship.pos[0] += g.ship.vel[0];
 	g.ship.pos[1] += g.ship.vel[1];
@@ -713,6 +759,10 @@ void physics()
 		//move the bullet
 		b->pos[0] += b->vel[0];
 		b->pos[1] += b->vel[1];
+		//////////////////////////////////////////////////////nagi
+		extern void getBltpos(float x, float y);
+		getBltpos(b->pos[0], b->pos[1]);
+		////////////////////////////////////////////////////nagi
 		//Check for collision with window edges
 		if (b->pos[0] < 0.0) {
 			b->pos[0] += (float)gl.xres;
@@ -728,15 +778,21 @@ void physics()
 		}
 		i++;
 	}
-	
-	//Update balloon position
-	updateBlnPos();
+
+	if (!gl.gamePause) {	
+		//Update balloon position
+		updateBlnPos();
+	}
 
 	//Update asteroid positions
 	Asteroid *a = g.ahead;
 	while (a) {
 		a->pos[0] += a->vel[0];
 		a->pos[1] += a->vel[1];
+
+		if(checkColiTur(xt, a->pos[0], yt, a->pos[1], a->radius)) {	
+		};
+
 		//Check for collision with window edges
 		if (a->pos[0] < -100.0) {
 			a->pos[0] += (float)gl.xres+200;
@@ -891,8 +947,8 @@ void render()
 	r.bot = gl.yres - 20;
 	r.left = 10;
 	r.center = 0;
-
-/*	Rect r;
+/*
+	Rect r;
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f );	
 	glClear(GL_COLOR_BUFFER_BIT);
 	r.bot = gl.yres - 20;
@@ -905,7 +961,8 @@ void render()
 	ggprint8b(&r, 16, 0x00ff0000, "PRESS DOWN key to show game");
 	ggprint8b(&r, 16, 0x00ff0000, "PRESS 'm' key to show main page");
 	ggprint8b(&r, 16, 0x00ff0000, "PRESS 'c' key to credits page");
-*/	//-------------------------------------------------------------------------
+	*/
+	//-------------------------------------------------------------------------
 	//////////////////////////////////////////MainPage
 	if (gl.tttBool == true) {
 		renderTTT(gl.xres, gl.yres);
@@ -938,6 +995,9 @@ void render()
 	glVertex2f(0.0f, 0.0f);
 	glEnd();
 	glPopMatrix();
+	
+	renderTur(gl.yres);
+
 	if (gl.keys[XK_Up] || g.mouseThrustOn) {
 		int i;
 		//draw thrust
@@ -1002,8 +1062,8 @@ void render()
 		glEnd();
 	}
 
-	//renderBalloon(gl.xres, gl.yres);////////////////////////////nobeid
-	renderBalloon();//////////////////////////////////////////////nobeid
+		//renderBalloon(gl.xres, gl.yres);////////////////////////////nobeid
+		renderBalloon();//////////////////////////////////////////////nobeid
 
 	//draw credits
 	if (gl.creditTest) {
@@ -1017,16 +1077,23 @@ void render()
 		extern void checkScores(Rect r, int x, int y);
 		checkScores(r, gl.xres, gl.yres);
 	}
-	}/////////////////////////////////////////////////////////////////////////////////////////////////bool trigger
 	
+	/////////////nagi
+	extern void showgameplayMenu();
+	showgameplayMenu();
+	/////////////////////////////
+	
+	}/////////////////////////////////////////////////////////////////////////////////////////////////bool trigger
+
 	if(!gl.scoreS) {
-		ggprint8b(&r, 16, 0x00ff0000, "3350 - Asteroids");
-		ggprint8b(&r, 16, 0x00ffff00, "n bullets: %i", g.nbullets);
-		ggprint8b(&r, 16, 0x00ffff00, "n asteroids: %i", g.nasteroids);
-		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'S' to show high scores");
-		ggprint8b(&r, 16, 0x00ff0000, "PRESS DOWN key to show game");
-		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'm' key to show main page");
-		ggprint8b(&r, 16, 0x00ff0000, "PRESS 'c' key to credits page");
+		ggprint16(&r, 16, 0x00ff0000, "3350 - Tower-Tower-Tower");
+		ggprint16(&r, 16, 0x00ffff00, "n Bullets: %i", g.nbullets);
+		ggprint16(&r, 16, 0x00ffff00, "n Balloons: %i", g.nasteroids);
+		ggprint16(&r, 16, 0x00ff0000, "PRESS 'S' to show high scores");
+		ggprint16(&r, 16, 0x00ff0000, "PRESS DOWN key to show game mode");
+		ggprint16(&r, 16, 0x00ff0000, "PRESS 'g' key to start/pause game");
+		ggprint16(&r, 16, 0x00ff0000, "PRESS 'm' key to show main page");
+		ggprint16(&r, 16, 0x00ff0000, "PRESS 'c' key to credits page");
 	}
 }
 

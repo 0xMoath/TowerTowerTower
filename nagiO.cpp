@@ -13,6 +13,7 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
+#include <math.h>
 
 ///////DEFINED TYPES////////////
 typedef float Vec[3];
@@ -36,11 +37,28 @@ void getPathcent(int arr[2]);
 void getPatharr(unsigned char arr[18][18]);
 void updateBlnPos();
 void getStop(float x);
+void getBltpos(float x, float y);
+void showMenu();
+void showgameplayMenu();
 //void play();
 ///////////EXTERN////////////////
 extern int getXres();
 extern int getYres();
+extern struct timespec timeStart, timeCurrent;
+extern struct timespec timePause;
+extern double timeDiff(struct timespec *start, struct timespec *end);
+extern double timeSpan;
+extern void timeCopy(struct timespec *dest, struct timespec *source);
 /////////////////////////////////
+class Bullet
+{
+public:
+	float x;
+	float y;
+
+	Bullet() {
+	}
+} blt;
 
 class Path
 {
@@ -62,11 +80,30 @@ public:
 	int yres;
 	GLuint tttTexture;
         GLuint balloonTexture;
+        GLuint balloonTextureblue;
+        GLuint balloonTextureyellow;
+        GLuint balloonTexturegreen;
+        GLuint balloonTexturepurple;
+        GLuint menubarTexture;
+        GLuint menubar2Texture;
+        int menubar;
+        int menubar2;
         int ttt;
         int balloon;
+        int balloonblue;
+        int balloonyellow;
+        int balloongreen;
+        int balloonpurple;
         nGlobal() {
                 ttt=1;
                 balloon=2;
+        	balloonblue=3;
+        	balloonyellow=4;
+        	balloongreen=5;
+        	balloonpurple=6;
+       		menubar=7;
+       		menubar2=8;
+
         	xres = getXres();
         	yres = getYres();
 		printf ("Yres: %d\n",yres);
@@ -81,7 +118,6 @@ class Balloon
 public:
 	
 	Vec vel;
-	float radius;
 	double hDiff;
 	double wDiff;
 	float cent[2];
@@ -99,13 +135,19 @@ public:
 	bool goright;
 	bool goDown;
 	bool goUp;
+	int blnnumber;
+	int blncolor;
+
+	float cirCentr[2];
+	float radius;
+
 	Balloon() {
 		next = NULL;
 		prev = NULL;
-		wDiff = 50;
+		wDiff = 40;
 		hDiff = 30.0;//37.5;
 		go = 1;
-		startMoving = false;
+		//startMoving = false;
 	}
 } bln;
 
@@ -157,36 +199,50 @@ public:
 			return;
 	}
 };
-Image img[2] = {"./ttt.png", "./balloon.png"};
+Image img[8] = {"./ttt.png", "./balloon.png", "./b2.png", "./b3.png", "./b4.png", "./b5.png", "./mbar.png", "./mbar2.png"};
 
 
 class nGameBln
 {
 public:
 	Balloon *ahead;
+	Balloon *tail;
+	Balloon *n;
+	int random;
 	nGameBln() {
 		srand(time(NULL));
 		ahead = NULL;
-       		for (int i = 0; i < 50; i++) {
-        		Balloon *b = new Balloon;
-                	b->radius = 25;
+		srand (time(NULL));
+       		for (int i = 0; i < 100; i++) {
+			Balloon *b = new Balloon;
 			
+			random = rand() % 5 + 1;
+			b->blncolor = random;
+        		
+                	b->radius = 25;
+			b->blnnumber = i+1;
 			///X COORDINATE
 			b->cent[0] = pth.startY * 80;
-       			printf ("B->CENT[0]: %f\n",b->cent[0]);
+       			//printf ("B->CENT[0]: %f\n",b->cent[0]);
 			b->currX = pth.startY -0.5;
 			
 			///Y COORDINATE
 			b->cent[1] = pth.startX * 60 + nG.yres;
-       			printf ("B->CENT[1]: %f\n",b->cent[1]);
+       			//printf ("B->CENT[1]: %f\n",b->cent[1]);
 			b->currY = pth.startX + 0.5;
 			b->vel[0] = 0.05;
 			b->vel[1] = 0.05;
-			b->next = ahead;
-                	if (ahead != NULL) {
-                		ahead->prev = b;
-                	}
-                	ahead = b;
+			
+			if (ahead == NULL){
+				ahead = b;
+				ahead->prev = NULL;
+				tail = b;
+			}
+			else {
+				b->prev = tail;
+				tail->next = b;
+				tail = b;
+			}
 		}
 	}
 } nGame;
@@ -231,15 +287,75 @@ void initTTT()
 		0, GL_RGB, GL_UNSIGNED_BYTE, img[0].data);
 	
 	///////////////////////////////////////
-	//ballon texture here
+	//ballon texture here red
 	glGenTextures(1, &nG.balloonTexture);
 	glBindTexture(GL_TEXTURE_2D, nG.balloonTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	unsigned char *silhouetteData = buildAlphaData(&img[1]);	
+	unsigned char *silhouetteDatared = buildAlphaData(&img[1]);	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[1].width, img[1].height, 0,
-							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteData);
-	free(silhouetteData);
+							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteDatared);
+	free(silhouetteDatared);
+	///////////////////////////////////////
+	//blue
+	glGenTextures(1, &nG.balloonTextureblue);
+	glBindTexture(GL_TEXTURE_2D, nG.balloonTextureblue);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *silhouetteDatablue = buildAlphaData(&img[2]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[2].width, img[2].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteDatablue);
+	free(silhouetteDatablue);
+	///////////////////////////////////////
+	//yellow
+	glGenTextures(1, &nG.balloonTextureyellow);
+	glBindTexture(GL_TEXTURE_2D, nG.balloonTextureyellow);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *silhouetteDatayellow = buildAlphaData(&img[3]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[3].width, img[3].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteDatayellow);
+	free(silhouetteDatayellow);
+	///////////////////////////////////////
+	//green
+	glGenTextures(1, &nG.balloonTexturegreen);
+	glBindTexture(GL_TEXTURE_2D, nG.balloonTexturegreen);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *silhouetteDatagreen = buildAlphaData(&img[4]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[4].width, img[4].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteDatagreen);
+	free(silhouetteDatagreen);
+	///////////////////////////////////////
+	//purlple
+	glGenTextures(1, &nG.balloonTexturepurple);
+	glBindTexture(GL_TEXTURE_2D, nG.balloonTexturepurple);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *silhouetteDatapurple = buildAlphaData(&img[5]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[5].width, img[5].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, silhouetteDatapurple);
+	free(silhouetteDatapurple);
+	///////////////////////////////////
+	//mbar
+	glGenTextures(1, &nG.menubarTexture);
+	glBindTexture(GL_TEXTURE_2D, nG.menubarTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *menubar = buildAlphaData(&img[6]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[6].width, img[6].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, menubar);
+	free(menubar);
+	////////////////////////////////////
+	//mbar2
+	glGenTextures(1, &nG.menubar2Texture);
+	glBindTexture(GL_TEXTURE_2D, nG.menubar2Texture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *menubar2 = buildAlphaData(&img[7]);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img[7].width, img[7].height, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, menubar2);
+	free(menubar2);
 }
 
 void renderTTT(int x, int y)
@@ -258,8 +374,9 @@ void renderTTT(int x, int y)
 			glVertex2i(x, 0);
 		glEnd();
 	}
+	////////////////////////////////////////////
+	showMenu();
 }
-
 
 void getPatharr(unsigned char arr[18][18])
 {
@@ -267,6 +384,7 @@ void getPatharr(unsigned char arr[18][18])
 		for (int j = 0; j < 18; j++) {
 			if (arr[i][j] == 's' || arr[i][j] == 'm') {
 				if (arr[i][j] == 's') {
+					////startX is actually vertical position
 					pth.startX = -1*i - 0.5;
 					////startY is actually horizantal position
 					pth.startY = j + 0.5;
@@ -283,44 +401,50 @@ void getPatharr(unsigned char arr[18][18])
 void updateBlnPos()
 {
 	Balloon *b = nGame.ahead;
-		float dirx = 0.00;
-		float diry = 0.00;
-		int xx,yy;
-		bool down = false;
-		//bool left = false;
-		//bool right = false;
+	float dirx = 0.00;
+	float diry = 0.00;
 	while(b) {
-			/////////////////////chec if prev is null//////////
-			if ( b->prev != NULL && b->prev->cent[1] > 1414 && b->prev->cent[0] > 600) {
-				printf ("NOT NULL: %d\n",0);
+		b->startMoving = true;
+		///IF MULTIPLE BALLONS ALREADY GENERATED : CHECK//////////
+		if (b->prev != NULL) {
+		//printf ("----------------NOT NULL-----------------: %d\n",b->blnnumber);
+		//printf ("BALLOON #: %d\n",b->blnnumber);
+			if (b->prev->cent[1] > 1414) {
 				b->cent[0] += 0.00;
 				b->cent[1] += 0.00;
-			} else {
+				b->startMoving = false;
+			}
+			else {
 				b->startMoving = true;
 			}
-			
-			if (b->prev == NULL || b->startMoving) {
-			
+		}
+	
+		///IF ONLY ONE BALLON OR START MOVING = TRRE: CHECK/////////
+		if (b->prev == NULL || b->startMoving) {
+		//if (b->startMoving) {
+		//printf ("------------PREV IS NULL-----------------: %d\n",b->blnnumber);
+		//printf ("BALLOON #: %d\n",b->blnnumber);
 			///////////////////////Down/////////////////////////
 			if (pth.mapArr[b->currY+1][b->currX] == 'm') {
 				b->goDown = true;
 				b->goUp = false;
 				if (b->goDown) {
+					//delete-
+					if(b->blnnumber <= 37 && b->cent[1] > 1414) {
+						dirx = 0.00;
+						diry = -1.5;
+					}//delete
+					else {//delete
 					dirx = 0.00;
-					diry = -1.00;
+					diry = -3.00;
+					} //delete
+					//
 					if (b->go == 1) {
 						b->go = 0;
 						b->stop = b->cent[1] - 60;
-						printf ("DOWN STOP COOR: %d\n",b->stop);
+						//printf ("DOWN STOP COOR: %d\n",b->stop);
 					}
 				}
-				/*
-				if (b->go == 1) {
-					b->go = 0;
-					b->stop = b->cent[1] - 60;
-					printf ("DOWN STOP COOR: %d\n",b->stop);
-				}*/
-			//down = true;
 			}
 			
 			//////////////////////left////////////Right/////////
@@ -333,18 +457,16 @@ void updateBlnPos()
 					b->goleft = false;
 					b->goright = true;
 				}
-
 				if (b->goleft) {
-					dirx = -2.00;
+					dirx = -4.00;
 					diry = 0.00;
 					if (b->go == 1) {
 						b->go = 0;
 						b->stop = b->cent[0] - 80;
 					}
 				}
-
 				else if (b->goright) {
-					dirx = 2.00;
+					dirx = 4.00;
 					diry = 0.00;
 					if (b->go == 1) {
 						b->go = 0;
@@ -352,51 +474,73 @@ void updateBlnPos()
 					}
 				}
 			}
-			
-			////////////////CHECKING///////////////////////////////////
-			
-			///////////////////DOWN///////////////////////////////////
-			if ((b->cent[1] != b->stop) && b->goDown) {
-				b->cent[0] += dirx;
-				b->cent[1] += diry;
-				printf ("DOWN POS: %f\n",b->cent[1]);
-				printf ("DOWN moved COOR: %f\n",b->cent[1]);
-			} else if (b->cent[1] == b->stop){
-				if (b->goDown) {
-					b->currX = b->currX;
-					b->currY = b->currY+1;
-				}
-				b->goDown = false;
-				b->go = 1;
-				b->stop = 0;
-				dirx = 0.00;
-				diry = 0.00;
+			//////////////////////////testing only
+			if (b->blnnumber <= 10) {
+				//printf ("BALLOON #: %d\n",b->blnnumber);
+				//printf ("DIRX: %f\n",dirx);
+				//printf ("DIRY: %f\n",diry);
 			}
+			/////////////////////////////
+
+		////////////////CHECKING///////////////////////////////////
 			
-			///////////////////LEFT or RIGHT////////////////////////
-			if ((b->cent[0] != b->stop) && (b->goleft || b->goright)) {
-				b->cent[0] += dirx;
-				b->cent[1] += diry;
-			} else if (b->cent[0] == b->stop) {
-				if (b->goleft) {
-					b->currX = b->currX - 1;
-					b->currY = b->currY;
-				}
-				else if (b->goright) {
-					b->currX = b->currX + 1;
-					b->currY = b->currY;
-				}
-				//b->goleft = false;
-				//b->goright = false;
-				b->go = 1;
-				b->stop = 0;
-				dirx = 0.00;
-				diry = 0.00;
+		///////////////////DOWN///////////////////////////////////
+		if ((b->cent[1] != b->stop) && b->goDown) {
+			b->cent[0] += dirx;
+			b->cent[1] += diry;
+		} else if (b->cent[1] == b->stop){
+			if (b->goDown) {
+				b->currX = b->currX;
+				b->currY = b->currY+1;
+				//printf ("DOWN-POS(X): %f\n",b->cent[1]);
+				//printf ("DOWN-POS(Y): %f\n",b->cent[0]);
 			}
-			}//if b->prev == null
-			b=b->next;
+			b->goDown = false;
+			b->goUp = false;
+			b->go = 1;
+			b->stop = 0;
+			dirx = 0.00;
+			diry = 0.00;
+		}	
+		///////////////////LEFT or RIGHT////////////////////////
+		if ((b->cent[0] != b->stop) && (b->goleft || b->goright)) {
+			b->cent[0] += dirx;
+			b->cent[1] += diry;
+		} else if (b->cent[0] == b->stop) {
+			if (b->goleft) {
+				b->currX = b->currX - 1;
+				b->currY = b->currY;
+				//printf ("LEFT-POS(X): %f\n",b->cent[1]);
+				//printf ("LEFT-POS(Y): %f\n",b->cent[0]);
+			}
+			else if (b->goright) {
+				b->currX = b->currX + 1;
+				b->currY = b->currY;
+				//printf ("RIGHT-POS(X): %f\n",b->cent[1]);
+				//printf ("RIGHT-POS(Y): %f\n",b->cent[0]);
+			}
+			//b->goleft = false;
+			//b->goright = false;
+			b->go = 1;
+			b->stop = 0;
+			dirx = 0.00;
+			diry = 0.00;
+		}
+		}
+		////////////////////checking for collision
+		if ((blt.x-b->cent[0])*(blt.x-b->cent[0]) + (blt.y-b->cent[1])*(blt.y-b->cent[1]) < b->radius*b->radius) {
+			printf ("Bullet has hit the balloon!!: %f\n",blt.x);
+			Balloon *b2 = b->next;
+			b->prev->next = b->next;
+                        b->next->prev = b->prev;
+			delete b;
+                        b = NULL;
+                        b = b2;
+		}
+	b=b->next;
 	}
 }
+
 void showNagi(int x, int y)
 {
     	Rect r;
@@ -453,15 +597,30 @@ void checkScores(Rect r, int x, int y)
 void renderBalloon()
 {
 	Balloon *b = nGame.ahead;
+	float theta;
 	while (b) {
 		glColor3f(1.0, 1.0, 1.0);
-                if (nG.balloon) {
                         glPushMatrix();
-                        glBindTexture(GL_TEXTURE_2D, nG.balloonTexture);
-                        glEnable(GL_ALPHA_TEST);
+			if (b->blncolor == 1) {
+                        	glBindTexture(GL_TEXTURE_2D, nG.balloonTexture);
+			}
+			else if (b->blncolor == 2) {
+                        	glBindTexture(GL_TEXTURE_2D, nG.balloonTextureblue);
+			}
+			else if (b->blncolor == 3) {
+                        	glBindTexture(GL_TEXTURE_2D, nG.balloonTextureyellow);
+			}
+			else if (b->blncolor == 4) {
+                        	glBindTexture(GL_TEXTURE_2D, nG.balloonTexturegreen);
+			}
+			else if (b->blncolor == 5) {
+                        	glBindTexture(GL_TEXTURE_2D, nG.balloonTexturepurple);
+			}
+                        
+			glEnable(GL_ALPHA_TEST);
                         glAlphaFunc(GL_GREATER, 0.0f);
                         glColor4ub(255,255,255,255);
-                        glBegin(GL_QUADS);
+			glBegin(GL_QUADS);
 				glTexCoord2f(0.0f, 1.0f);
                                 glVertex2i(b->cent[0] - b->wDiff ,b->cent[1] - b->hDiff );
                                 glTexCoord2f(0.0f, 0.0f);
@@ -473,7 +632,84 @@ void renderBalloon()
                         glEnd();
                         glPopMatrix();
                         glDisable(GL_ALPHA_TEST);
+			
+			///CIRLCE WITH RADIUS
+			//
+			/*
+			glColor3f(0,0,0);
+			glBegin(GL_POLYGON);
+			for (int i = 0; i< 360; i++) {
+				theta = i*3.142/180;
+				glVertex2f(b->cent[0]+30*cos(theta), b->cent[1]+30*sin(theta));
+			}
+			glEnd();
+			*/
+
+			b->cirCentr[0] = b->cent[0]+30*cos(theta);
+			b->cirCentr[1] = b->cent[1]+30*sin(theta);
+			b->radius = 30;
+			/////end circle
+			
 			b = b->next;
-                }
 	}
+}
+
+void getBltpos(float x, float y) {
+	blt.x = x;
+	blt.y = y;
+}
+
+void showMenu() {
+	glColor4ub(255,255,255,255);
+	glBindTexture(GL_TEXTURE_2D, nG.menubarTexture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(500,100);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(500,200);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(1100,200);
+                glTexCoord2f(1.0f, 1.0f);
+               	glVertex2i(1100,100);
+	glEnd();
+	
+	glColor4ub(255,255,255,255);
+	glBindTexture(GL_TEXTURE_2D, nG.menubarTexture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(1200,100);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(1200,200);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(1800,200);
+                glTexCoord2f(1.0f, 1.0f);
+               	glVertex2i(1800,100);
+	glEnd();
+		
+    	Rect m1;
+    	m1.center = 0;
+	m1.left = 630;
+	m1.bot = 140;
+	ggprint16(&m1, 16, 0x00ff0000, "PRESS DOWN ARROW TO START");
+    	
+	Rect m2;
+    	m2.center = 0;
+	m2.left = 1400;
+	m2.bot = 140;
+	ggprint16(&m2, 16, 0x00ff0000, "PRESS (ESC) TO EXIT");
+}
+
+void showgameplayMenu() {
+	glColor4ub(255,255,255,255);
+	glBindTexture(GL_TEXTURE_2D, nG.menubar2Texture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(1500,400);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(1500,1460);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(2200,1460);
+                glTexCoord2f(1.0f, 1.0f);
+               	glVertex2i(2200,400);
+	glEnd();
 }
