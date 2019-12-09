@@ -36,23 +36,61 @@ void Minit();
 void Mphysics();
 void Mrender();
 
-
 class MImage;
+typedef double Vec[3];
 
+typedef struct Map1{
+
+    int status;
+    int hover;
+    int type;
+
+}map1;
+map1 grid[18][18];
+class Turret {
+    public:
+        int posx, posy;
+        float angle;
+        int upgrade;
+        int type;
+
+
+    public:
+        Turret(){
+            angle = 90.0;
+            upgrade = 0;
+
+        }
+}turret;
 int qsize;
 class MGlobal {
     public:
+        Turret Tur[3][4];
         int grid_dim;
         int board_dim;
+        int maxTur, maxTur2;
         MImage * ground;
         GLuint groundTex;
-        MImage * icepath;
-        GLuint iceTex;
+        MImage * sew;
+        GLuint sewTex;
+        MImage * sns;
+        GLuint snsTex;
+        MImage * cne;
+        GLuint cneTex;
+        MImage * cnw;
+        GLuint cnwTex;
+        MImage * cse;
+        GLuint cseTex;
+        MImage * csw;
+        GLuint cswTex;
+        int currType;
         ~MGlobal() {
         }
         MGlobal() {
             grid_dim = 15;
             board_dim = 800;
+            maxTur = 0;
+            maxTur2 = 0;
 
 
         }
@@ -87,12 +125,7 @@ class MLevel {
                 }
                 printf("\n");
             }
-        
-	//////////////////////////////////////////////
-        extern void getPatharr(unsigned char arr[18][18]);
-        getPatharr(arr);
-        /////////////////////////////////////////////
-	}
+        }
         void removeCrLf(char *str) {
             //remove carriage return and linefeed from a Cstring
             char *p = str;
@@ -159,15 +192,20 @@ class MImage {
                 unlink(ppmname);
         }
 };
-MImage Mimg[2] = {
+MImage Mimg[7] = {
     "./images/dirt_full_new.png",
-    "./images/ice_0_old.png"};
+    "./images/ssew.png",
+    "./images/ssns.png",
+    "./images/scne.png",
+    "./images/scnw.png",
+    "./images/scse.png",
+    "./images/scsw.png"};
 
 
 
 void MinitOpengl(void)
 {
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_COLOR_MATERIAL);
 
@@ -185,21 +223,70 @@ void MinitOpengl(void)
             GL_RGB, GL_UNSIGNED_BYTE, mgl.ground->data);
     w = Mimg[1].width;
     h = Mimg[1].height;
-    mgl.icepath = &Mimg[1];
-    glGenTextures(1, &mgl.iceTex);
+    mgl.sew = &Mimg[1];
+    glGenTextures(1, &mgl.sewTex);
     //create opengl texture elements
-    glBindTexture(GL_TEXTURE_2D, mgl.iceTex);
+    glBindTexture(GL_TEXTURE_2D, mgl.sewTex);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-            GL_RGB, GL_UNSIGNED_BYTE, mgl.icepath->data);
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.sew->data);
+    w = Mimg[3].width;
+    h = Mimg[3].height;
+    mgl.cne = &Mimg[3];
+    glGenTextures(1, &mgl.cneTex);
+    //create opengl texture elements
+    glBindTexture(GL_TEXTURE_2D, mgl.cneTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.cne->data);
+    w = Mimg[4].width;
+    h = Mimg[4].height;
+    mgl.cnw = &Mimg[4];
+    glGenTextures(1, &mgl.cnwTex);
+    //create opengl texture elements
+    glBindTexture(GL_TEXTURE_2D, mgl.cnwTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.cnw->data);
+    w = Mimg[5].width;
+    h = Mimg[5].height;
+    mgl.cse = &Mimg[5];
+    glGenTextures(1, &mgl.cseTex);
+    //create opengl texture elements
+    glBindTexture(GL_TEXTURE_2D, mgl.cseTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.cse->data);
+    w = Mimg[6].width;
+    h = Mimg[6].height;
+    mgl.csw = &Mimg[6];
+    glGenTextures(1, &mgl.cswTex);
+    //create opengl texture elements
+    glBindTexture(GL_TEXTURE_2D, mgl.cswTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.csw->data);
+    w = Mimg[2].width;
+    h = Mimg[2].height;
+    mgl.sns = &Mimg[2];
+    glGenTextures(1, &mgl.snsTex);
+    //create opengl texture elements
+    glBindTexture(GL_TEXTURE_2D, mgl.snsTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, mgl.sns->data);
 }
 int qsize2;
 void Minit() {
     qsize = 80;
     qsize2 = 60;
 }
-
 
 void get_grid_center(const int g, const int i, const int j, int cent[2])
 {
@@ -216,50 +303,269 @@ void get_grid_center(const int g, const int i, const int j, int cent[2])
     cent[0] *= j;
     cent[1] *= i;
 }
+void checkhover(int x, int y, int yyres)
+{
+    int cent[2];
+    int i,j;
+    for(i =0; i < 18; i++) {
+        for( j =0; j < 18; j++) {
+            grid[i][j].hover=0;
+        }
+    }
+
+    for( i =0; i < 18; i++) {
+        for(j =0; j < 18; j++) {
+            get_grid_center(1,i,j,cent);
+            if (x >= cent[0]-qsize &&
+                    x <= cent[0]+qsize &&
+                    y >= yyres-cent[1]-qsize2 &&
+                    y <= yyres-cent[1]+qsize2) {
+                grid[i][j].hover=1; 
+                break;
+            }
+
+        }
+        if(grid[i][j].hover)
+            break;    
+    }
+}
+void clearhover()
+{
+    int i,j; 
+    for(i =0; i < 18; i++) {
+        for( j =0; j < 18; j++) {
+            grid[i][j].hover=0;
+        }
+    }
+
+}
+void checkT(int typet)
+{
+    int cent[2];
+    int i,j;
+    for(i =0; i < 18; i++) {
+        for( j =0; j < 18; j++) {
+            get_grid_center(1,i,j,cent);
+            if(grid[i][j].hover) {
+                if(typet == 0 && mgl.maxTur <=2){
+                    printf("placed");
+                    mgl.Tur[typet][mgl.maxTur].posx = cent[0]+30;
+                    mgl.Tur[typet][mgl.maxTur].posy = 900-cent[1]-40;
+                    printf("posx: %d, posy: %d ", mgl.Tur[typet][mgl.maxTur].posx,
+                            mgl.Tur[typet][mgl.maxTur].posy);
+                    mgl.maxTur++;
+                    grid[i][j].status = 1;
+                    grid[i][j].type = typet;
+                }
+                if(typet == 1 && mgl.maxTur2<=2){
+                    printf("placed");
+                    mgl.Tur[typet][mgl.maxTur2].posx = cent[0]+30;
+                    mgl.Tur[typet][mgl.maxTur2].posy = 900-cent[1]-40;
+                    printf("posx: %d, posy: %d ", mgl.Tur[typet][mgl.maxTur2].posx, mgl.Tur[typet][mgl.maxTur2].posy);
+
+                    mgl.Tur[typet][mgl.maxTur2].type = typet;
+                    mgl.maxTur2++;
+                    grid[i][j].status = 1;
+                    grid[i][j].type = typet;
+                }
+
+
+            }
+        }
+    }
+}
+void renderTur(int yres)
+{   
+    int cent[2];
+    int temp = 0;
+    for (int i=0; i<18; i++) {
+        for (int j=0; j<18; j++) {
+            if (grid[i][j].status == 1 && grid[i][j].type==0) {
+                glColor3f(1.0, 1.0, 1.0);
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.snsTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0]+5,yres-cent[1]-qsize2+10);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0]+5,yres-cent[1]-10);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize-5,yres-cent[1]-10);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize-5,yres-cent[1]-qsize2+10);
+                glEnd();
+            }    
+            if (grid[i][j].status == 1 && grid[i][j].type==1) {
+                get_grid_center(1,i,j,cent);
+                //glBindTexture(GL_TEXTURE_2D, mgl.sewTex);
+                glColor3f(0.2, 0.2, 0.2);
+                //glBegin(GL_QUADS);
+                glPushMatrix();
+                glTranslatef(mgl.Tur[1][temp].posx,mgl.Tur[1][temp].posy,0.0f);
+                glRotatef(mgl.Tur[1][0].angle,0.0f,0.0f,0.0f);
+                glBegin(GL_TRIANGLES);
+                glVertex2f(-12.0f, -10.0f);
+                glVertex2f(  0.0f, 20.0f);
+                glVertex2f(  0.0f, -6.0f);
+                glVertex2f(  0.0f, -6.0f);
+                glVertex2f(  0.0f, 20.0f);
+                glVertex2f( 12.0f, -10.0f);
+                glEnd();
+                glPopMatrix();
+                temp++;
+                
+            }
+        }
+    }
+
+}
+void UpdateTurColi()
+{
+mgl.Tur[1][0].angle = 270.0;
+
+    printf("checkInUpdate\n");
+
+
+}
+bool checkColiTur(int xt, int xa, int yt, int ya, int r)
+{
+    if(mgl.Tur[1][0].type == 1){
+    xt = mgl.Tur[1][0].posx;
+    yt = mgl.Tur[1][0].posy;
+
+        //UpdateTurColi();
+    if( ((xt-xa)*(xt-xa)+(yt-ya)*(yt-ya)) < r*r) {
+        printf("InCheck\n");
+        UpdateTurColi();
+        return true;
+    }
+    else {
+
+        return false;
+    }
+        
+}
+}
 void MoathRend(int x, int y, Rect r)
 {
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 
-	x = x/2;
-	y = y/2;
-	
-	r.bot =y;
-	r.left=x;
-	r.center=0;
+    x = x/2;
+    y = y/2;
 
-	ggprint16(&r, 16, 0xfff0, "Moath's File");
-	//this is my friday code plz ask questions if it isnt clear
-	ggprint16(&r, 16, 0xfff0, "Hello Friday world");
+    r.bot =y;
+    r.left=x;
+    r.center=0;
+
+    ggprint16(&r, 16, 0xfff0, "Moath's File");
 
 }
 void ShowScores(Rect r)
 {
-	glClearColor(0.0,0.0,0.0,0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0,0.0,0.0,0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     ifstream fin("Names.txt");
 
     char name[3];
     int score;
-	if(fin.is_open()){ 
-    while (fin >> name >> score)
-    {
-	ggprint8b(&r, 16, 0xfff0, name);
-	ggprint8b(&r, 16, 0xfff0, "score:%i", score);
-    
-    }
-    fin.close();}
+    if(fin.is_open()){ 
+        while (fin >> name >> score)
+        {
+            ggprint8b(&r, 16, 0xfff0, name);
+            ggprint8b(&r, 16, 0xfff0, "score:%i", score);
+
+        }
+        fin.close();}
 }
 void Mrender(int yres)
 {
     //Rect r;
     int cent[2];
+
     for (int i=0; i<18; i++) {
         for (int j=0; j<18; j++) {
-            if (mlev.arr[i][j] == 'm' || mlev.arr[i][j] == 'e' || mlev.arr[i][j] == 's') {
+            if (mlev.arr[i][j] == 's' || mlev.arr[i][j] == '2') {
                 glColor3f(1.0, 1.0, 1.0);
                 //put tile in its place
-		get_grid_center(1,i,j,cent);
-		glBindTexture(GL_TEXTURE_2D, mgl.iceTex);
+
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.snsTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0],yres-cent[1]-qsize2);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0],yres-cent[1]);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]-qsize2);
+                glEnd();
+            }
+            if (mlev.arr[i][j] == '1') {
+                glColor3f(1.0, 1.0, 1.0);
+                //put tile in its place
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.sewTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0],yres-cent[1]-qsize2);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0],yres-cent[1]);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]-qsize2);
+                glEnd();
+            }
+            if (mlev.arr[i][j] == '5') {
+                glColor3f(1.0, 1.0, 1.0);
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.cneTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0],yres-cent[1]-qsize2);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0],yres-cent[1]);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]-qsize2);
+                glEnd();
+            }
+            if (mlev.arr[i][j] == '6') {
+                glColor3f(1.0, 1.0, 1.0);
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.cnwTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0],yres-cent[1]-qsize2);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0],yres-cent[1]);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]-qsize2);
+                glEnd();
+            }
+            if (mlev.arr[i][j] == '3') {
+                glColor3f(1.0, 1.0, 1.0);
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.cseTex);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2i(cent[0],yres-cent[1]-qsize2);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2i(cent[0],yres-cent[1]);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2i(cent[0]+qsize,yres-cent[1]-qsize2);
+                glEnd();
+            }
+            if (mlev.arr[i][j] == '4') {
+                glColor3f(1.0, 1.0, 1.0);
+                get_grid_center(1,i,j,cent);
+                glBindTexture(GL_TEXTURE_2D, mgl.cswTex);
                 glBegin(GL_QUADS);
                 glTexCoord2f(0.0f, 0.0f);
                 glVertex2i(cent[0],yres-cent[1]-qsize2);
@@ -273,6 +579,9 @@ void Mrender(int yres)
             }
             if (mlev.arr[i][j] == 'b') {
                 glColor3f(1.0, 1.0, 1.0);
+                if(grid[i][j].hover){
+                    glColor3f(0.0f,0.0f,1.0f);
+                }
                 glBindTexture(GL_TEXTURE_2D, mgl.groundTex);
                 get_grid_center(1,i,j,cent);
                 glBegin(GL_QUADS);
