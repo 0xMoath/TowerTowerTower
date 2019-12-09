@@ -54,7 +54,7 @@ extern double physicsCountdown;
 extern double timeSpan;
 extern double timeDiff(struct timespec *start, struct timespec *end);
 extern void timeCopy(struct timespec *dest, struct timespec *source);
-extern void checkHover(int x, int y, int yres);
+extern void checkhover(int x, int y, int yres);
 //-----------------------------------------------------------------------------
 /*
 class Global {
@@ -391,9 +391,9 @@ extern void Mrender(int yres);
 /////////////////////////moath
 extern void checkT(int x);
 extern void renderTur(int x);
-extern void clearhover();
-extern bool checkColitur(int, int, int, int, int);
+extern bool checkColiTur(int, int, int, int, int);
 extern void UpdateTurColi();
+extern void clearhover();
 //////////////////////////////
 bool renderKeyPress();
 
@@ -539,9 +539,16 @@ void check_mouse(XEvent *e)
 		}
 	}
 	//keys[XK_Up] = 0;
+	x = e->xbutton.x;
+	y = e->xbutton.y;
+
+	y =  gl.yres - y;
+
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
+		savex = e->xbutton.x;
+		savey = e->xbutton.y;
 		//Mouse moved
-		int xdiff = savex - e->xbutton.x;
+		/*int xdiff = savex - e->xbutton.x;
 		int ydiff = savey - e->xbutton.y;
 		if (++ct < 10)
 			return;		
@@ -583,7 +590,9 @@ void check_mouse(XEvent *e)
 		x11.set_mouse_position(100,100);
 		savex=100;
 		savey=100;
+		*/
 	}
+	
 	if(x==savex && y == savey) {
 		return;
 	}
@@ -634,13 +643,13 @@ int check_keys(XEvent *e)
 			break;
 		case XK_1:
 			if(gl.PlaceTur) {
-				gl.typetur = 1;
-			};
+				gl.typetur = 0;
+			}
 			break;
 		case XK_0:
 			if(gl.PlaceTur) {
-				gl.typetur = 0;
-			};
+				gl.typetur = 1;
+			}
 			break;
 		case XK_g:
 			gl.gamePause = !gl.gamePause;
