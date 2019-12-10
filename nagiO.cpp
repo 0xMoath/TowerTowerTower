@@ -434,14 +434,14 @@ void updateBlnPos()
 				b->goUp = false;
 				if (b->goDown) {
 					//delete-
-					if(b->blnnumber <= 37 && b->cent[1] > 1414) {
+					/*if(b->blnnumber <= 37 && b->cent[1] > 1414) {
 						dirx = 0.00;
 						diry = -1.5;
-					}//delete
-					else {//delete
+					}//delete*/
+					//else {//delete
 						dirx = 0.00;
-						diry = -3.00;
-					} //delete
+						diry = -1.50;
+					//} //delete
 					//
 					if (b->go == 1) {
 						b->go = 0;
