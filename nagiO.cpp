@@ -527,12 +527,36 @@ void updateBlnPos()
 		////////////////////checking for collision
 		if ((blt.x-b->cent[0])*(blt.x-b->cent[0]) + (blt.y-b->cent[1])*(blt.y-b->cent[1]) < b->radius*b->radius) {
 			printf ("Bullet has hit the balloon!!: %f\n",blt.x);
+			
 			Balloon *b2 = b->next;
-			b->prev->next = b->next;
-                        b->next->prev = b->prev;
+			if (b->prev == NULL) {
+				if(b->next == NULL) {
+					///only 1 balloon
+					nGame.ahead = NULL;
+				} else {
+					//first balloon
+					b->next->prev = NULL;
+					nGame.ahead = b->next;
+				}
+			}
+			else {	
+				if (b->next == NULL) {
+					b->prev->next = NULL;
+				}
+				else {
+					b->prev->next = b->next;
+					b->next->prev = b->prev;
+				}
+				//Balloon *b2 = b->next;
+				//b->prev->next = b->next;
+                        	//b->next->prev = b->prev;
+				//delete b;
+                        	//b = NULL;
+                        	//b = b2;
+			}
 			delete b;
-                        b = NULL;
-                        b = b2;
+			b = NULL;
+			b = b2;
 		}
 	printf ("BcurrX%d\n",b->currX);
 	printf ("BcurrY%d\n",b->currY);
