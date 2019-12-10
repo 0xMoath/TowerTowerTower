@@ -57,7 +57,7 @@ class Turret {
 
     public:
         Turret(){
-            angle = 90.0;
+            angle = 90.0f;
             upgrade = 0;
 
         }
@@ -339,7 +339,7 @@ void clearhover()
     }
 
 }
-void checkT(int typet)
+void checkT(int typet, int yres)
 {
     int cent[2];
     int i,j;
@@ -350,9 +350,10 @@ void checkT(int typet)
                 if(typet == 0 && mgl.maxTur <=2){
                     printf("placed");
                     mgl.Tur[typet][mgl.maxTur].posx = cent[0]+30;
-                    mgl.Tur[typet][mgl.maxTur].posy = 900-cent[1]-40;
+                    mgl.Tur[typet][mgl.maxTur].posy = yres-cent[1]-40;
                     printf("posx: %d, posy: %d ", mgl.Tur[typet][mgl.maxTur].posx,
                             mgl.Tur[typet][mgl.maxTur].posy);
+                    mgl.Tur[typet][mgl.maxTur].type = typet;
                     mgl.maxTur++;
                     grid[i][j].status = 1;
                     grid[i][j].type = typet;
@@ -360,8 +361,9 @@ void checkT(int typet)
                 if(typet == 1 && mgl.maxTur2<=2){
                     printf("placed");
                     mgl.Tur[typet][mgl.maxTur2].posx = cent[0]+30;
-                    mgl.Tur[typet][mgl.maxTur2].posy = 900-cent[1]-40;
-                    printf("posx: %d, posy: %d ", mgl.Tur[typet][mgl.maxTur2].posx, mgl.Tur[typet][mgl.maxTur2].posy);
+                    mgl.Tur[typet][mgl.maxTur2].posy = yres-cent[1]-40;
+                    printf("posx: %d, posy: %d ", mgl.Tur[typet][mgl.maxTur2].posx,
+                            mgl.Tur[typet][mgl.maxTur2].posy);
 
                     mgl.Tur[typet][mgl.maxTur2].type = typet;
                     mgl.maxTur2++;
@@ -402,7 +404,7 @@ void renderTur(int yres)
                 //glBegin(GL_QUADS);
                 glPushMatrix();
                 glTranslatef(mgl.Tur[1][temp].posx,mgl.Tur[1][temp].posy,0.0f);
-                glRotatef(mgl.Tur[1][0].angle,0.0f,0.0f,0.0f);
+                glRotatef(mgl.Tur[1][temp].angle,0.0f,0.0f,1.0f);
                 glBegin(GL_TRIANGLES);
                 glVertex2f(-12.0f, -10.0f);
                 glVertex2f(  0.0f, 20.0f);
@@ -419,32 +421,65 @@ void renderTur(int yres)
     }
 
 }
-void UpdateTurColi()
+
+double GetAngle(int xt, int xa, int yt, int ya)
 {
-mgl.Tur[1][0].angle = 270.0;
 
-    printf("checkInUpdate\n");
+    double difx =abs(abs(xt)-abs(xa)), dify=abs(abs(yt)-abs(ya));
+    double beta, alpha;
+    if(xt >= xa && yt <= ya) {
 
+        beta = dify/2;
+        alpha = 90 - beta;
+    }
+    else if(xt >= xa && yt >= ya) {
+
+        beta = dify/2;
+        alpha = 90 + beta;
+    }
+    else if(xt <= xa && yt >= ya) {
+
+        beta = difx/2;
+        alpha = 270 + beta;
+        if(alpha == 360)
+            alpha =0;
+    }
+    else if(xt <= xa && yt <= ya) {
+
+        beta = dify/2;
+        alpha = 270 - beta;
+    }
+
+    return alpha;
 
 }
+
+void UpdateTurColi(int ii, int jj, float angle)
+{
+    mgl.Tur[ii][jj].angle = angle;
+}
+
 bool checkColiTur(int xt, int xa, int yt, int ya, int r)
 {
-    if(mgl.Tur[1][0].type == 1){
-    xt = mgl.Tur[1][0].posx;
-    yt = mgl.Tur[1][0].posy;
+    int temp =mgl.maxTur;
+        if(mgl.maxTur <= mgl.maxTur2) {
+            temp = mgl.maxTur2;
+        }
+    for(int i =0; i < 2;i++) {
+        for(int j = 0; j <temp;j++){ 
+    if(mgl.Tur[i][j].type == 1){
+    xt = mgl.Tur[i][j].posx;
+    yt = mgl.Tur[i][j].posy;
 
-        //UpdateTurColi();
     if( ((xt-xa)*(xt-xa)+(yt-ya)*(yt-ya)) < r*r) {
-        printf("InCheck\n");
-        UpdateTurColi();
-        return true;
+      //  printf("xt: %d, xa: %d, yt: %d, ya: %d",xt,xa,yt,ya);
+        UpdateTurColi(i, j, GetAngle(xt,xa,yt,ya));
     }
-    else {
 
-        return false;
-    }
         
 }
+}
+} return true;
 }
 void MoathRend(int x, int y, Rect r)
 {
