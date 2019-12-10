@@ -557,6 +557,9 @@ void updateBlnPos()
 			delete b;
 			b = NULL;
 			b = b2;
+			if (b == NULL) {
+				break;
+			}
 		}
 	printf ("BcurrX%d\n",b->currX);
 	printf ("BcurrY%d\n",b->currY);
