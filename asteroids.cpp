@@ -389,7 +389,7 @@ extern void MinitOpengl(void);
 extern void Minit();
 extern void Mrender(int yres);
 /////////////////////////moath
-extern void checkT(int x);
+extern void checkT(int x, int yres);
 extern void renderTur(int x);
 extern bool checkColiTur(int, int, int, int, int);
 extern void UpdateTurColi();
@@ -502,7 +502,7 @@ void check_mouse(XEvent *e)
 		if (e->xbutton.button==1) {
 			//Left button is down
 			if(gl.PlaceTur) {
-				checkT(gl.typetur);
+				checkT(gl.typetur, gl.yres);
 			}
 			//a little time between each bullet
 			struct timespec bt;
