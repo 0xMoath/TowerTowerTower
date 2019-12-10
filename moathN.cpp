@@ -125,6 +125,10 @@ class MLevel {
                 }
                 printf("\n");
             }
+	////////////////////////////////nagi
+	extern void getPatharr(unsigned char arr[18][18]);
+        getPatharr(arr);
+	///////////////////////////////nagi
         }
         void removeCrLf(char *str) {
             //remove carriage return and linefeed from a Cstring
