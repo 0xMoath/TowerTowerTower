@@ -406,22 +406,17 @@ void getPatharr(unsigned char arr[18][18])
 }
 void updateBlnPos()
 {
-	//double oldYres = nG.xres;
-	//nG.xres = getXres();
-       	//printf ("XRES: %d\n",nG.xres);
 	Balloon *b = nGame.ahead;
 	float dirx = 0.00;
 	float diry = 0.00;
 	while(b) {
-		/////////////////////////////////when resized screen
-		//nG.yres = getYres();
-		//b->cent[1] = b->cent[1] + (nG.yres-oldYres/50);
-		///////////////////////////////
 		
 		b->startMoving = true;
 		///IF MULTIPLE BALLONS ALREADY GENERATED : CHECK//////////
+		printf("cent[1]:%f", b->cent[1]);
 		if (b->prev != NULL ) {
-			if (b->prev->cent[1] > 1414) {
+			////////////////////////816 or 1414
+			if (b->prev->cent[1] > 816) {
 				b->cent[0] += 0.00;
 				b->cent[1] += 0.00;
 				b->startMoving = false;
