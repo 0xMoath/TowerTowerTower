@@ -358,7 +358,7 @@ public:
 		//it will undo the last change done by XDefineCursor
 		//(thus do only use ONCE XDefineCursor and then XUndefineCursor):
 	}
-} x11(0, 0);
+} x11(1250, 900);
 
 //function prototypes
 void init_opengl(void);

@@ -14,6 +14,8 @@
 #include <ctime>
 #include <unistd.h>
 #include <math.h>
+#include<stdio.h>
+#include<stdlib.h>
 
 ///////DEFINED TYPES////////////
 typedef float Vec[3];
@@ -135,6 +137,7 @@ public:
 	bool goright;
 	bool goDown;
 	bool goUp;
+	bool reachedEnd;
 	int blnnumber;
 	int blncolor;
 
@@ -147,6 +150,7 @@ public:
 		wDiff = 40;
 		hDiff = 30.0;//37.5;
 		go = 1;
+		reachedEnd = false;
 		//startMoving = false;
 	}
 } bln;
@@ -221,6 +225,7 @@ public:
         		
                 	b->radius = 25;
 			b->blnnumber = i+1;
+			
 			///X COORDINATE
 			b->cent[0] = pth.startY * 80;
        			//printf ("B->CENT[0]: %f\n",b->cent[0]);
@@ -230,6 +235,7 @@ public:
 			b->cent[1] = pth.startX * 60 + nG.yres;
        			//printf ("B->CENT[1]: %f\n",b->cent[1]);
 			b->currY = pth.startX + 0.5;
+			
 			b->vel[0] = 0.05;
 			b->vel[1] = 0.05;
 			
@@ -385,7 +391,7 @@ void getPatharr(unsigned char arr[18][18])
 			if (arr[i][j] == 's' || arr[i][j] == 'm') {
 				if (arr[i][j] == 's') {
 					////startX is actually vertical position
-					pth.startX = -1*i - 0.5;
+					pth.startX = -1*i - 0.5 + nG.yres;
 					////startY is actually horizantal position
 					pth.startY = j + 0.5;
 				}
@@ -400,15 +406,21 @@ void getPatharr(unsigned char arr[18][18])
 }
 void updateBlnPos()
 {
+	//double oldYres = nG.xres;
+	//nG.xres = getXres();
+       	//printf ("XRES: %d\n",nG.xres);
 	Balloon *b = nGame.ahead;
 	float dirx = 0.00;
 	float diry = 0.00;
 	while(b) {
+		/////////////////////////////////when resized screen
+		//nG.yres = getYres();
+		//b->cent[1] = b->cent[1] + (nG.yres-oldYres/50);
+		///////////////////////////////
+		
 		b->startMoving = true;
 		///IF MULTIPLE BALLONS ALREADY GENERATED : CHECK//////////
-		if (b->prev != NULL) {
-		//printf ("----------------NOT NULL-----------------: %d\n",b->blnnumber);
-		//printf ("BALLOON #: %d\n",b->blnnumber);
+		if (b->prev != NULL ) {
 			if (b->prev->cent[1] > 1414) {
 				b->cent[0] += 0.00;
 				b->cent[1] += 0.00;
@@ -421,11 +433,8 @@ void updateBlnPos()
 	
 		///IF ONLY ONE BALLON OR START MOVING = TRRE: CHECK/////////
 		if (b->prev == NULL || b->startMoving) {
-		//if (b->startMoving) {
-		//printf ("------------PREV IS NULL-----------------: %d\n",b->blnnumber);
-		//printf ("BALLOON #: %d\n",b->blnnumber);
 			///////////////////////Down/////////////////////////
-			if (pth.mapArr[b->currY+1][b->currX] == 'm') {
+			if (pth.mapArr[b->currY+1][b->currX] != 'b') {
 				b->goDown = true;
 				b->goUp = false;
 				if (b->goDown) {
@@ -435,20 +444,19 @@ void updateBlnPos()
 						diry = -1.5;
 					}//delete
 					else {//delete
-					dirx = 0.00;
-					diry = -3.00;
+						dirx = 0.00;
+						diry = -3.00;
 					} //delete
 					//
 					if (b->go == 1) {
 						b->go = 0;
 						b->stop = b->cent[1] - 60;
-						//printf ("DOWN STOP COOR: %d\n",b->stop);
 					}
 				}
 			}
 			
 			//////////////////////left////////////Right/////////
-			else if (pth.mapArr[b->currY][b->currX-1] == 'm' || pth.mapArr[b->currY][b->currX+1] == 'm'){
+			else if (pth.mapArr[b->currY][b->currX-1] != 'b' || pth.mapArr[b->currY][b->currX+1] != 'b' ){
 				if (pth.mapArr[b->currY][b->currX+1] == 'b'){
 					b->goleft = true;
 					b->goright = false;
@@ -474,59 +482,48 @@ void updateBlnPos()
 					}
 				}
 			}
-			//////////////////////////testing only
-			if (b->blnnumber <= 10) {
-				//printf ("BALLOON #: %d\n",b->blnnumber);
-				//printf ("DIRX: %f\n",dirx);
-				//printf ("DIRY: %f\n",diry);
-			}
-			/////////////////////////////
 
-		////////////////CHECKING///////////////////////////////////
-			
-		///////////////////DOWN///////////////////////////////////
-		if ((b->cent[1] != b->stop) && b->goDown) {
-			b->cent[0] += dirx;
-			b->cent[1] += diry;
-		} else if (b->cent[1] == b->stop){
-			if (b->goDown) {
-				b->currX = b->currX;
-				b->currY = b->currY+1;
-				//printf ("DOWN-POS(X): %f\n",b->cent[1]);
-				//printf ("DOWN-POS(Y): %f\n",b->cent[0]);
+			//-------///////////////CHECKING/////////////////-------//	
+			//////////////////////////DOWN///////////////////////////
+			if ((b->cent[1] != b->stop) && b->goDown) {
+				b->cent[0] += dirx;
+				b->cent[1] += diry;
+			}	 
+			else if (b->cent[1] == b->stop){
+				if (b->goDown) {
+					b->currX = b->currX;
+					b->currY = b->currY+1;
+				}
+				b->goDown = false;
+				b->goUp = false;
+				b->go = 1;
+				b->stop = 0;
+				dirx = 0.00;
+				diry = 0.00;
+			}	
+		
+			///////////////////LEFT or RIGHT////////////////////////
+			if ((b->cent[0] != b->stop) && (b->goleft || b->goright)) {
+				b->cent[0] += dirx;
+				b->cent[1] += diry;
+			} 
+			else if (b->cent[0] == b->stop) {
+				if (b->goleft) {
+					b->currX = b->currX - 1;
+					b->currY = b->currY;
+				}
+				else if (b->goright) {
+					b->currX = b->currX + 1;
+					b->currY = b->currY;
+				}
+				b->go = 1;
+				b->stop = 0;
+				dirx = 0.00;
+				diry = 0.00;
 			}
-			b->goDown = false;
-			b->goUp = false;
-			b->go = 1;
-			b->stop = 0;
-			dirx = 0.00;
-			diry = 0.00;
-		}	
-		///////////////////LEFT or RIGHT////////////////////////
-		if ((b->cent[0] != b->stop) && (b->goleft || b->goright)) {
-			b->cent[0] += dirx;
-			b->cent[1] += diry;
-		} else if (b->cent[0] == b->stop) {
-			if (b->goleft) {
-				b->currX = b->currX - 1;
-				b->currY = b->currY;
-				//printf ("LEFT-POS(X): %f\n",b->cent[1]);
-				//printf ("LEFT-POS(Y): %f\n",b->cent[0]);
-			}
-			else if (b->goright) {
-				b->currX = b->currX + 1;
-				b->currY = b->currY;
-				//printf ("RIGHT-POS(X): %f\n",b->cent[1]);
-				//printf ("RIGHT-POS(Y): %f\n",b->cent[0]);
-			}
-			//b->goleft = false;
-			//b->goright = false;
-			b->go = 1;
-			b->stop = 0;
-			dirx = 0.00;
-			diry = 0.00;
-		}
-		}
+
+		}/////////////////////end of start moving
+
 		////////////////////checking for collision
 		if ((blt.x-b->cent[0])*(blt.x-b->cent[0]) + (blt.y-b->cent[1])*(blt.y-b->cent[1]) < b->radius*b->radius) {
 			printf ("Bullet has hit the balloon!!: %f\n",blt.x);
@@ -537,6 +534,8 @@ void updateBlnPos()
                         b = NULL;
                         b = b2;
 		}
+	printf ("BcurrX%d\n",b->currX);
+	printf ("BcurrY%d\n",b->currY);
 	b=b->next;
 	}
 }
@@ -596,9 +595,12 @@ void checkScores(Rect r, int x, int y)
 }
 void renderBalloon()
 {
+	double oldYres = nG.yres;
 	Balloon *b = nGame.ahead;
 	float theta;
 	while (b) {
+		nG.yres = getYres();
+		b->cent[1] = b->cent[1] + (nG.yres-oldYres);
 		glColor3f(1.0, 1.0, 1.0);
                         glPushMatrix();
 			if (b->blncolor == 1) {
@@ -643,7 +645,7 @@ void renderBalloon()
 				glVertex2f(b->cent[0]+30*cos(theta), b->cent[1]+30*sin(theta));
 			}
 			glEnd();
-			*/
+			*/	
 
 			b->cirCentr[0] = b->cent[0]+30*cos(theta);
 			b->cirCentr[1] = b->cent[1]+30*sin(theta);
